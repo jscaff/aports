@@ -50,7 +50,8 @@ build() {
 }
 
 check() {
-        ctest
+        #ctest
+        # There are no builtin tests and this depends on GUI
         default_check
 }
 
