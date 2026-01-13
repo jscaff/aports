@@ -50,6 +50,7 @@ build() {
 }
 
 check() {
+        ctest
         default_check
 }
 
