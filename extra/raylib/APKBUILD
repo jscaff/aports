@@ -42,6 +42,7 @@ build() {
         -DPLATFORM="Desktop" \
         -DCMAKE_C_FLAGS="-DMA_USE_STDINT" \
         -Dglfw3_DIR="/usr/lib/cmake/glfw3" \
+        -DBUILD_SHARED_LIBS=ON \
         -G Ninja \
         -S .
 
