@@ -5,8 +5,10 @@ pkgdesc="Advanced NTP client and server"
 url="https://github.com/raysan5/raylib"
 arch="x86_64"
 license="GPLv2"
+commit="04328ceeadf7e2b68f246cb4deab9348f4e02825"
+builddir="$srcdir"/$pkgname-$commit
 source="
-$pkgname-$pkgver.tar.gz:https://gitlab.com/chrony/chrony/-/archive/04328ceeadf7e2b68f246cb4deab9348f4e02825/chrony-04328ceeadf7e2b68f246cb4deab9348f4e02825.tar.gz
+$pkgname-$pkgver.tar.gz::https://gitlab.com/chrony/chrony/-/archive/$commit/chrony-$commit.tar.gz
 sys_qnx.c
 sys_qnx.h
 adjtime_qnx.h
@@ -24,7 +26,7 @@ clang
 
 prepare() {
     default_prepare
-	cp $srcdir/sys_qnx.c sys_qnx.h adjtime_qnx.h .
+	cp $srcdir/sys_qnx.c $srcdir/sys_qnx.h $srcdir/adjtime_qnx.h .
 }
 
 build() {
@@ -39,3 +41,14 @@ check() {
 package() {
 	DESTDIR="$pkgdir" make -j$(nproc) install 
 }
+
+sha512sums="
+55134048d4783d347538a66c2a01efd4dd1154d9ad8fe5ef50ef736fe9ad4d88d27f1f97c349318f71990b220bb74c66ec1a3e05cd86e2fc95b41d3dd86ba195  chrony-3.5.tar.gz
+600daa89b0fe8878e4f5f3b3e9910fb1e4a4e6443e4a4000fd3778f27ae7416b873893b2db14d4f2634c32be95139cf3443c433aa3419885b1050ea5025853e8  sys_qnx.c
+058a4f590df1cacba664152f6cb8261ca46a35e225af860c2c0db79ae92dfa385813a9ad1d0419046d07a43887746364d5a97bcae4ce4d31be4bfb3c78a60c84  sys_qnx.h
+d64a224a244d49ae0e062cab621174b80c7da702428e0eabf7cf7f24ff61a0be5ea73adda8e24b74f03b2db465106536845b7b3dc11928cf17f5ed883ca5d80a  adjtime_qnx.h
+5b7b6102fd4097ab992f2c00294ecfc3d4c21a7de5e7bacb650c2f79da57ac993355647291db2d949eb4ef98ae1e8b73e4cb6b2a777e94f0c5709355b1ce1383  00-configure.patch
+6370af443cde132e5935035a04f2d35e38e4b3b4e67c6213c7aa048ba0c336734aac4cb61ab906cc2ce5fd98b900524f006ee659213294d133e912821e4fc571  01-sys.patch
+e068e568a81f81fcfcda9ad14a2b3f05de583c8e0125737d7e7ac5fa87fc27d88e0f932ffc31c0c5cad7ac01fccf9ae32d5da1d040da4dedbd9b16349f89e52c  02-sysincl.patch
+4a69d3dbeb80a648ffbfd258e237151e16dc3b82c8a0dd8d5fdf6b47e67672dfb50508d79fd5ec86013b91bbee01e85939c8cee9cc7f4479020b6d61e1546864  03-samplefilt.patch
+"

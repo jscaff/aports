@@ -34,7 +34,7 @@
 
 #include "sys.h"
 
-void SYS_QNX_DropRoot(uid_t uid, gid_t gid, SYS_ProcessContext context);
+void SYS_QNX_DropRoot(uid_t uid, gid_t gid);
 void SYS_QNX_Initialise(void);
 void SYS_QNX_Finalise(void);
 

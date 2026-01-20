@@ -361,11 +361,9 @@ set_sync_status(int synchronised, double est_error, double max_error)
 /* ================================================== */
 
 #ifdef FEAT_PRIVDROP
-void SYS_QNX_DropRoot(uid_t uid, gid_t gid, SYS_ProcessContext context)
+void SYS_QNX_DropRoot(uid_t uid, gid_t gid)
 {
-  if (context == SYS_MAIN_PROCESS)
-    PRV_StartHelper();
-
+  PRV_StartHelper();
   UTI_DropRoot(uid, gid);
 }
 #endif
