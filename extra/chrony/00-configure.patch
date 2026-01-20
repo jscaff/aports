@@ -1,0 +1,33 @@
+diff --git a/configure b/configure
+index 323f574..2e9705b 100755
+--- a/configure
++++ b/configure
+@@ -467,6 +467,28 @@ case $OPERATINGSYSTEM in
+         fi
+         echo "Configuring for Solaris (" $SYSTEM "SunOS version" $VERSION ")" 
+     ;;                                                                        
++    QNX)
++        EXTRA_OBJECTS="sys_generic.o sys_qnx.o sys_posix.o"
++        LIBS="$LIBS -lsocket"
++        # LIBS="$LIBS -lsocket -lnsl -lkvm -lelf -lresolv"
++        try_setsched=1
++        try_lockmem=1
++        feat_refclock=0
++        CFLAGS="-O2 -g -fPIE -fstack-protector-strong --param=ssp-buffer-size=4 -Wmissing-prototypes -Wshadow -Wall -pthread -I/usr/include/p11-kit-1"
++        add_def QNX
++        # QNX doesn't have SA_RESTART
++        add_def SA_RESTART 0
++        # # These are needed to have msg_control in struct msghdr
++        # add_def __EXTENSIONS__
++        # add_def _XOPEN_SOURCE 1
++        # add_def _XOPEN_SOURCE_EXTENDED 1
++        # if [ $feat_droproot = "1" ]; then
++        #   add_def FEAT_PRIVDROP
++        #   priv_ops="ADJUSTTIMEX SETTIME BINDSOCKET"
++        # fi
++        echo "Configuring for illumos (" $SYSTEM " NTO version" $VERSION ")"
++    ;;                                                                        
++
+     * )
+         echo "error: $SYSTEM is not supported (yet?)"
+         exit 1

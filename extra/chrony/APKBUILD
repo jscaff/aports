@@ -1,0 +1,41 @@
+pkgname=chrony
+pkgver=3.5
+pkgrel=0
+pkgdesc="Advanced NTP client and server"
+url="https://github.com/raysan5/raylib"
+arch="x86_64"
+license="GPLv2"
+source="
+$pkgname-$pkgver.tar.gz:https://gitlab.com/chrony/chrony/-/archive/04328ceeadf7e2b68f246cb4deab9348f4e02825/chrony-04328ceeadf7e2b68f246cb4deab9348f4e02825.tar.gz
+sys_qnx.c
+sys_qnx.h
+adjtime_qnx.h
+00-configure.patch
+01-sys.patch
+02-sysincl.patch
+03-samplefilt.patch
+"
+
+makedepends="
+bison
+make
+clang
+"
+
+prepare() {
+    default_prepare
+	cp $srcdir/sys_qnx.c sys_qnx.h adjtime_qnx.h .
+}
+
+build() {
+    ./configure --prefix=/usr
+    make -j$(nproc)
+}
+
+check() {
+	make -j$(nproc) check
+}
+
+package() {
+	DESTDIR="$pkgdir" make -j$(nproc) install 
+}

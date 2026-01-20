@@ -1,0 +1,15 @@
+diff --git a/sysincl.h b/sysincl.h
+index 873a3bd..27ee3f5 100644
+--- a/sysincl.h
++++ b/sysincl.h
+@@ -53,7 +53,9 @@
+ #include <sys/time.h>
+ #include <sys/types.h>
+ #include <sys/un.h>
+-#include <sys/shm.h>
++#ifndef QNX
++ #include <sys/shm.h>
++#endif 
+ #include <sys/wait.h>
+ #include <syslog.h>
+ #include <time.h>
