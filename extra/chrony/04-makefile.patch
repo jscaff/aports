@@ -1,0 +1,27 @@
+diff --git a/Makefile.in b/Makefile.in
+index 8e68ef41..c2077fdc 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -64,7 +64,6 @@ chronyc : $(CLI_OBJS)
+ 	$(CC) $(CFLAGS) -o chronyc $(CLI_OBJS) $(LDFLAGS) $(LIBS) $(EXTRA_CLI_LIBS)
+ 
+ distclean : clean
+-	$(MAKE) -C doc distclean
+ 	$(MAKE) -C test/unit distclean
+ 	-rm -f .DS_Store
+ 	-rm -f Makefile config.h config.log
+@@ -96,13 +95,6 @@ install: chronyd chronyc
+ 	chmod 755 $(DESTDIR)$(SBINDIR)/chronyd
+ 	cp chronyc $(DESTDIR)$(BINDIR)/chronyc
+ 	chmod 755 $(DESTDIR)$(BINDIR)/chronyc
+-	$(MAKE) -C doc install
+-
+-docs :
+-	$(MAKE) -C doc docs
+-
+-install-docs :
+-	$(MAKE) -C doc install-docs
+ 
+ %.o : %.c
+ 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+
