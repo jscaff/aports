@@ -22,6 +22,7 @@ adjtime_qnx.h
 05-util-test.patch
 chrony.conf
 chronyd.confd
+06-test-random.patch
 "
 
 makedepends="bison make clang qnx-io-sock-dev nettle-dev"
@@ -80,4 +81,5 @@ bead2b28c55923cd7a7ece355957924642691abf3bef760ab1a343b6f5815b0c40507d250e9d3ff8
 f800749422b055d3ce92c06c3c9c9cf112ec8f34c8ed3e02e3344df817b3a29d802a99c388fdbde8c5fc863a1fe1122118ea3def04de310f2bae6642ed04c88a  05-util-test.patch
 663c6316bcca762de119d88e4bb6536bfe0fea19939fe1b673900847619e7f1d6783b789b38ebba97b5dc3778dedf798bafd65f00f8bd7e312bfed7df0caaf71  chrony.conf
 7769822bf8a963416c37b05d9e0002502fe98d205d7b45586202cbc59a7b994ece37c48f87736627c9480b6d0d51baead212181b63d9b0f4af5d732b7ddceee5  chronyd.confd
+fea74f52b7b0590edb5875d47e0b819600f41381e113dd7ff76028d31ee1cebf10f8ee7b2e8f4bfe2f654657ff8b724f27f51fd05281dbf8e95e1c1e514dfbd5  06-test-random.patch
 "

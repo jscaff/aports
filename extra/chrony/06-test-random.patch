@@ -1,0 +1,15 @@
+diff --git a/test/unit/test.c b/test/unit/test.c
+index fbfeb4b..74f9edc 100644
+--- a/test/unit/test.c
++++ b/test/unit/test.c
+@@ -96,7 +96,7 @@ void TST_ResumeLogging(void)
+ double
+ TST_GetRandomDouble(double min, double max)
+ {
+-  return min + (double)random() / RAND_MAX * (max - min);
++  return min + random() / 2147483647.0 * (max - min);
+ }
+ 
+ void
+
+
