@@ -1,0 +1,44 @@
+diff --git a/test/system/test.common b/test/system/test.common
+index 28c48055..8b27542b 100644
+--- a/test/system/test.common
++++ b/test/system/test.common
+@@ -81,6 +81,20 @@ test_error() {
+ 	return 1
+ }
+ 
++check_pid_running() {
++    if [[ $(uname) = "QNX" ]];
++    then
++        if [[ $(pidin -p $1 | wc -l) -eq 1 ]];
++        then 
++            (exit 1)
++        else
++            (exit 0)
++        fi
++    else
++        ps -p $1 > /dev/null
++    fi
++}
++
+ chronyd=$(command -v chronyd)
+ chronyc=$(command -v chronyc)
+ 
+@@ -250,7 +264,7 @@ start_chronyd() {
+ 
+ 	$CHRONYD_WRAPPER "$chronyd" $(get_chronyd_options) > "$TEST_DIR/chronyd.out" 2>&1
+ 
+-	[ $? -eq 0 ] && [ -f "$pidfile" ] && ps -p "$(cat "$pidfile")" > /dev/null && test_ok || test_error
++	[ $? -eq 0 ] && [ -f "$pidfile" ] && check_pid_running "$(cat "$pidfile")" && test_ok || test_error
+ }
+ 
+ wait_for_sync() {
+@@ -275,7 +289,7 @@ stop_chronyd() {
+ 	fi
+ 
+ 	# Wait for the process to terminate (we cannot use "wait")
+-	while ps -p "$pid" > /dev/null; do
++	while check_pid_running "$pid"; do
+ 		sleep 0.1
+ 	done
+ 
+

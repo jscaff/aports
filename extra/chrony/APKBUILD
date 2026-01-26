@@ -21,6 +21,7 @@ adjtime_qnx.h
 04-makefile.patch
 05-util-test.patch
 06-test-random.patch
+07-test-common.patch
 chrony.conf
 chronyd.confd
 "
@@ -48,8 +49,7 @@ build() {
 }
 
 check() {
-    # make check
-    default_check
+    make check
 }
 
 package() {
@@ -60,13 +60,7 @@ package() {
 	mkdir -p "$pkgdir"/var/lib/chrony \
 		"$pkgdir"/etc/chrony
 
-	# chrony.drift must be writable by chrony user
-    chown $pkgusers:$pkggroups -R "$pkgdir"/etc/chrony || (exit 0) # crazy that chown gets a Permission denied but works anyways??
 	install -m644 "$srcdir"/chrony.conf "$pkgdir"/etc/chrony/chrony.conf
-    chown root:root "$pkgdir"/etc/chrony/*
-
-	chown $pkgusers:$pkggroups "$pkgdir"/var/lib/chrony || (exit 0) # crazy that chown gets a Permission denied but works anyways??
-	touch "$pkgdir"/var/lib/chrony/chrony.drift
 }
 
 sha512sums="
@@ -81,6 +75,7 @@ d4809b4aecad8a390fe118eb88a36eddb29656d4df764403b0ff0ce193fedfd5a91344fe4723eb57
 bead2b28c55923cd7a7ece355957924642691abf3bef760ab1a343b6f5815b0c40507d250e9d3ff8b53255a0460f5a13e50be1de6f9bcce9c103b0a878bfcfb0  04-makefile.patch
 f800749422b055d3ce92c06c3c9c9cf112ec8f34c8ed3e02e3344df817b3a29d802a99c388fdbde8c5fc863a1fe1122118ea3def04de310f2bae6642ed04c88a  05-util-test.patch
 fac8a5e660fa0ff9cc6fcc3213941683e019782565271af1cd5db52e8e3714c0783fbff36937e632c9d0524bceb9c5951fed177ff06b480fb658659b1ac405f5  06-test-random.patch
+b703ba1ffd5ac0243c76b570e778f2aca5bcddd706bbc6ace31b3138873c99e8de9921a61dafc10068dbaa004f1c74e5c84e493a4e002c1f70213a180acc3263  07-test-common.patch
 663c6316bcca762de119d88e4bb6536bfe0fea19939fe1b673900847619e7f1d6783b789b38ebba97b5dc3778dedf798bafd65f00f8bd7e312bfed7df0caaf71  chrony.conf
 7769822bf8a963416c37b05d9e0002502fe98d205d7b45586202cbc59a7b994ece37c48f87736627c9480b6d0d51baead212181b63d9b0f4af5d732b7ddceee5  chronyd.confd
 "
