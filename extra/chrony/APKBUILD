@@ -20,9 +20,9 @@ adjtime_qnx.h
 03-samplefilt.patch
 04-makefile.patch
 05-util-test.patch
+06-test-random.patch
 chrony.conf
 chronyd.confd
-06-test-random.patch
 "
 
 makedepends="bison make clang qnx-io-sock-dev nettle-dev"
@@ -39,13 +39,16 @@ build() {
     export CFLAGS=" -Wno-deprecated-non-prototype"
     ./configure \
 		--prefix=/usr \
-		--sysconfdir=/etc/$pkgname \
-		--chronyrundir=/run/chrony \
-		--with-user=$pkgname \
+        --sbindir=/usr/bin \
+        --sysconfdir=/etc/$pkgname \
+        --chronyrundir=/run/$pkgname \
+        --with-pidfile=/run/$pkgname/chronyd.pid \
+		--with-user=$pkgname
     make 
 }
 
 check() {
+    # make check
     default_check
 }
 
@@ -57,14 +60,12 @@ package() {
 	mkdir -p "$pkgdir"/var/lib/chrony \
 		"$pkgdir"/etc/chrony
 
-    # chowns are failing in fakeroot? :(
 	# chrony.drift must be writable by chrony user
-	# chown $pkgusers:$pkggroups "$pkgdir"/etc/chrony
+    chown $pkgusers:$pkggroups -R "$pkgdir"/etc/chrony || (exit 0) # crazy that chown gets a Permission denied but works anyways??
 	install -m644 "$srcdir"/chrony.conf "$pkgdir"/etc/chrony/chrony.conf
     chown root:root "$pkgdir"/etc/chrony/*
 
-
-	#chown $pkgusers:$pkggroups "$pkgdir"/var/lib/chrony
+	chown $pkgusers:$pkggroups "$pkgdir"/var/lib/chrony || (exit 0) # crazy that chown gets a Permission denied but works anyways??
 	touch "$pkgdir"/var/lib/chrony/chrony.drift
 }
 
@@ -73,13 +74,13 @@ sha512sums="
 600daa89b0fe8878e4f5f3b3e9910fb1e4a4e6443e4a4000fd3778f27ae7416b873893b2db14d4f2634c32be95139cf3443c433aa3419885b1050ea5025853e8  sys_qnx.c
 058a4f590df1cacba664152f6cb8261ca46a35e225af860c2c0db79ae92dfa385813a9ad1d0419046d07a43887746364d5a97bcae4ce4d31be4bfb3c78a60c84  sys_qnx.h
 d64a224a244d49ae0e062cab621174b80c7da702428e0eabf7cf7f24ff61a0be5ea73adda8e24b74f03b2db465106536845b7b3dc11928cf17f5ed883ca5d80a  adjtime_qnx.h
-cde0c5542f035c36d59fd40b4bf18d496e40ec18f4cd6884d6b9239f3838c6f0d35b126a8d951335cd9006407415a61cedc984af8fc3b2b82086a10c39cca6d8  00-configure.patch
+6e504bcd44fc5ec55cd2a363bc14a9d1cbe132ec1630ae157c3d3f8f62e01eee3c731b11097c8c0b702cba6060b0106f62328c531917bfe75a3175709e4646a8  00-configure.patch
 6370af443cde132e5935035a04f2d35e38e4b3b4e67c6213c7aa048ba0c336734aac4cb61ab906cc2ce5fd98b900524f006ee659213294d133e912821e4fc571  01-sys.patch
-e068e568a81f81fcfcda9ad14a2b3f05de583c8e0125737d7e7ac5fa87fc27d88e0f932ffc31c0c5cad7ac01fccf9ae32d5da1d040da4dedbd9b16349f89e52c  02-sysincl.patch
+d4809b4aecad8a390fe118eb88a36eddb29656d4df764403b0ff0ce193fedfd5a91344fe4723eb572f037e046b2fb20d7fd362a533fffdca0220193223a5ddb1  02-sysincl.patch
 4a69d3dbeb80a648ffbfd258e237151e16dc3b82c8a0dd8d5fdf6b47e67672dfb50508d79fd5ec86013b91bbee01e85939c8cee9cc7f4479020b6d61e1546864  03-samplefilt.patch
 bead2b28c55923cd7a7ece355957924642691abf3bef760ab1a343b6f5815b0c40507d250e9d3ff8b53255a0460f5a13e50be1de6f9bcce9c103b0a878bfcfb0  04-makefile.patch
 f800749422b055d3ce92c06c3c9c9cf112ec8f34c8ed3e02e3344df817b3a29d802a99c388fdbde8c5fc863a1fe1122118ea3def04de310f2bae6642ed04c88a  05-util-test.patch
+fac8a5e660fa0ff9cc6fcc3213941683e019782565271af1cd5db52e8e3714c0783fbff36937e632c9d0524bceb9c5951fed177ff06b480fb658659b1ac405f5  06-test-random.patch
 663c6316bcca762de119d88e4bb6536bfe0fea19939fe1b673900847619e7f1d6783b789b38ebba97b5dc3778dedf798bafd65f00f8bd7e312bfed7df0caaf71  chrony.conf
 7769822bf8a963416c37b05d9e0002502fe98d205d7b45586202cbc59a7b994ece37c48f87736627c9480b6d0d51baead212181b63d9b0f4af5d732b7ddceee5  chronyd.confd
-fea74f52b7b0590edb5875d47e0b819600f41381e113dd7ff76028d31ee1cebf10f8ee7b2e8f4bfe2f654657ff8b724f27f51fd05281dbf8e95e1c1e514dfbd5  06-test-random.patch
 "
