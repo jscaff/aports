@@ -1,0 +1,84 @@
+pkgname=chrony
+pkgver=4.8
+pkgrel=0
+pkgdesc="Advanced NTP client and server"
+url="https://gitlab.com/chrony/chrony/"
+arch="x86_64"
+license="GPLv2"
+pkgusers="$pkgname"
+pkggroups="$pkgname"
+commit="9e8541e3c4c89bfb7a60b404f646fab57c69ce59"
+builddir="$srcdir"/$pkgname
+source="
+$pkgname-$pkgver.tar.gz::https://gitlab.com/chrony/chrony/-/archive/$commit/chrony-$commit.tar.gz
+00-build-patches.patch
+01-sys-c.patch
+02-sysincl.patch
+03-tests.patch
+04-getsockname-fix.patch
+05-client-socket.patch
+sys_qnx.c
+sys_qnx.h
+adjtime_qnx.h
+chrony.conf
+chronyd.confd
+"
+
+makedepends="bison make clang qnx-io-sock-dev nettle-dev"
+
+depends="qnx-io-sock nettle"
+
+unpack() {
+	default_unpack
+    # Makes tests pass because QNX saddr_un.sun_path contains absolute paths, and when it gets capped at 104 chars, doesn't nul-terminate it so it breaks a bunch of stuff yay
+    # This makes the path shorter by removing the long commit sha. This might bite us later if we have a build system with a long path.
+    mv "$srcdir/$pkgname-$commit" "$srcdir/$pkgname"
+}
+
+prepare() {
+    default_prepare
+	cp $srcdir/sys_qnx.c $srcdir/sys_qnx.h $srcdir/adjtime_qnx.h .
+}
+
+build() {
+    export CC=clang
+    export CFLAGS=" -Wno-deprecated-non-prototype"
+    ./configure \
+		--prefix=/usr \
+        --sbindir=/usr/bin \
+        --sysconfdir=/etc/$pkgname \
+        --chronyrundir=/run/$pkgname \
+        --with-pidfile=/run/$pkgname/chronyd.pid \
+		--with-user=$pkgname
+    make 
+}
+
+check() {
+    make check
+}
+
+package() {
+    make DESTDIR="$pkgdir" install
+
+	install -dm2750 -g wheel "$pkgdir"/var/log/chrony
+
+	mkdir -p "$pkgdir"/var/lib/chrony \
+		"$pkgdir"/etc/chrony
+
+	install -m644 "$srcdir"/chrony.conf "$pkgdir"/etc/chrony/chrony.conf
+}
+
+sha512sums="
+2718160945a93510f9a48c9c53358263beb8f0e6e408fc76e7192bd8c81cbe038fbe4f82957d6cc4d4ac8ad4faaf03f0b01d19f1466ba54f6e2fd5b502315d9d  chrony-4.8.tar.gz
+3a1bf077168bc7b36b9ced8cc4d635dcdc9d12708b88a46a0f65b83fe6e293d323acf55191751e5596f33afc07ba4467cde72276873504ef4c11cb66a4bfbf5b  00-build-patches.patch
+762e8fc7929429dff3e0cec342eb8736a3fd7208fc0357985696e1a0be55ca42e9a5493068c692ec0539ea1b5cd80166517faae6a0bcc6fd06747ee9e3c9eadc  01-sys-c.patch
+a6f510baf5c654d654549c2f60ea10c720e113175bb597691d58dfba1a9bcdad1de134b7fc592d3511a82b475ebcae5b56855aa6d50a10fbcc4f2abfcc7612d8  02-sysincl.patch
+e347a558aad5d9a9d64737c68c9c9abc40e58eeed72677bce576f0102591ef3444829fc15d7630188cb6de27e6689efe0d1c6870cd54edb000770bbde1ad0c0a  03-tests.patch
+9d7a7748b6ceffd1592ac15cafcc93471fc44d3897cd1edaad07cdae492ff114d69e5244c907006bc6185511860c895f4277537efad7c40ce7573a54effdfbb8  04-getsockname-fix.patch
+40a98cad0e00d729cd7982ced93fd56ffca8bdc04dcee2249417105529b34fa85f60c8982b6040312be4541a79a6f6729da558ab90c25fdd9990cab740ff5542  05-client-socket.patch
+2066364bf5bb86c6c25b313eca79da4ed5d05e4e728fa10c027179c0f734a1ffd5eaa850af7aceb6494f55a49fa28b18cf3221cc21d8b35d20f1719964d8e43e  sys_qnx.c
+bc6a02465d49f756072bd00b53357e34c8e402f49af3d4c570a8ee88965141e60ef71522c7e3ec50ff131cffb0c04a7ef19ad40f64a3b42ad3f5b6a7f69c943c  sys_qnx.h
+1fb7d279299cdf88f9ba83c68ea866e830b8edd518b84c14515bee8389f55114b9f5ee60154614c81427c6db71ac1cabb1cbf56ab51895d3ccf2d8a3612801ad  adjtime_qnx.h
+663c6316bcca762de119d88e4bb6536bfe0fea19939fe1b673900847619e7f1d6783b789b38ebba97b5dc3778dedf798bafd65f00f8bd7e312bfed7df0caaf71  chrony.conf
+7769822bf8a963416c37b05d9e0002502fe98d205d7b45586202cbc59a7b994ece37c48f87736627c9480b6d0d51baead212181b63d9b0f4af5d732b7ddceee5  chronyd.confd
+"
