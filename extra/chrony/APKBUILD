@@ -13,7 +13,7 @@ pkgusers="$pkgname"
 pkggroups="$pkgname"
 commit="9e8541e3c4c89bfb7a60b404f646fab57c69ce59"
 builddir="$srcdir"/$pkgname
-subpackages="$pkgname-openrc"
+subpackages="$pkgname-openrc $pkgname-dbg"
 source="
 $pkgname-$pkgver.tar.gz::https://gitlab.com/chrony/chrony/-/archive/$commit/chrony-$commit.tar.gz
 00-build-patches.patch
