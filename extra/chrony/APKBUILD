@@ -11,11 +11,12 @@ arch="x86_64"
 license="GPLv2"
 pkgusers="$pkgname"
 pkggroups="$pkgname"
-commit="9e8541e3c4c89bfb7a60b404f646fab57c69ce59"
+tag="$pkgver"
 builddir="$srcdir"/$pkgname
+#TODO add docs subpkg when we get an asciidoctor port
 subpackages="$pkgname-openrc $pkgname-dbg"
 source="
-$pkgname-$pkgver.tar.gz::https://gitlab.com/chrony/chrony/-/archive/$commit/chrony-$commit.tar.gz
+$pkgname-$pkgver.tar.gz::https://gitlab.com/chrony/chrony/-/archive/$tag/chrony-$tag.tar.gz?ref_type=tags
 00-build-patches.patch
 01-sys-c.patch
 02-sysincl.patch
@@ -38,7 +39,7 @@ unpack() {
 	default_unpack
     # Makes tests pass because QNX saddr_un.sun_path contains absolute paths, and when it gets capped at 104 chars, doesn't nul-terminate it so it breaks a bunch of stuff yay
     # This makes the path shorter by removing the long commit sha. This might bite us later if we have a build system with a long path.
-    mv "$srcdir/$pkgname-$commit" "$srcdir/$pkgname"
+    mv "$srcdir/$pkgname-$tag" "$srcdir/$pkgname"
 }
 
 prepare() {
@@ -77,7 +78,7 @@ package() {
 }
 
 sha512sums="
-2718160945a93510f9a48c9c53358263beb8f0e6e408fc76e7192bd8c81cbe038fbe4f82957d6cc4d4ac8ad4faaf03f0b01d19f1466ba54f6e2fd5b502315d9d  chrony-4.8.tar.gz
+acfb9e456df3358c0b32b75a2c645347c5be1433ec5e247576c2102ee1eb72499b6deb8473358b279e926dcd11d48f3b0b0b0ad24f51594309f69637f8a23f07  chrony-4.8.tar.gz
 01327a629ac4ec8e476cc97ed075deaa5a0b3a74d22d22516a016d624a3d6c3219de266702bc1a993bfe9b437eef31d85f265416d2a5b68cba8610f480227998  00-build-patches.patch
 762e8fc7929429dff3e0cec342eb8736a3fd7208fc0357985696e1a0be55ca42e9a5493068c692ec0539ea1b5cd80166517faae6a0bcc6fd06747ee9e3c9eadc  01-sys-c.patch
 a6f510baf5c654d654549c2f60ea10c720e113175bb597691d58dfba1a9bcdad1de134b7fc592d3511a82b475ebcae5b56855aa6d50a10fbcc4f2abfcc7612d8  02-sysincl.patch
