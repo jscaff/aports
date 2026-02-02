@@ -4,7 +4,6 @@
 pkgname=godot
 pkgver=4.4.1
 pkgrel=0
-_commit="650bed9662eebf885249fe557801211448f3724d"
 pkgdesc="Multi-platform 2D and 3D game engine"
 url="https://godotengine.org"
 license="MIT"
@@ -58,15 +57,19 @@ depends="
     qnx-alsa
     ca-certificates-bundle
 "
-subpackages="$pkgname-doc $pkgname-dbg $pkgname-templates"
-source="https://github.com/qnx-ports/godot-QNX/archive/$_commit.tar.gz
-        0001-godot-wayland-build-for-qnx.patch
-        0002-openxr-library-fix.patch
-        0003-do-not-force-gcc-for-llvm.patch
-        0004-library-linking-fix.patch
-        "
+subpackages="$pkgname-dbg"
+
+_platform_files=$(find platform -type f)
+source="
+    https://github.com/godotengine/godot/archive/refs/tags/$pkgver-stable.tar.gz
+    input-event-codes.h
+    0001-add-qnx-platform.patch
+    0002-somehow-invalid-syntax.patch
+    $_platform_files
+"
+
 options="!check" # No tests
-builddir="$startdir"/src/godot-QNX-"$_commit"
+builddir="$startdir"/src/godot-"$pkgver"-stable
 _sconsflags="
     module_camera_enabled=false
     builtin_brotli=false
@@ -86,9 +89,14 @@ _sconsflags="
     engine_update_check=false
     execinfo=false
     x11=no
-    wayland=no
+    wayland=yes
+    libdecor=yes
+    vulkan=false
+    opengl3=true
+    dev_build=true
+    debug_symbols=true
     lto=none
-    production=true
+    production=false
     system_certs_path=/etc/ssl/cert.pem
     use_sowrap=false
     speechd=false
@@ -106,18 +114,35 @@ x86_64)
     ;;
 esac
 
+prepare() {
+    default_prepare
+
+        _cp_platform_files
+
+# magic sauce to put the files in the right place since abuild just flattens everything
+    # echo $_platform_files | tr ' ' '\n' | sed -r 's/(.*?)(\/)([^\/]*$)/\"\1\" \"\3\"/' | xargs -n 2 _cp_platform_file
+# echo $_platform_files | tr ' ' '\n' | sed -r 's/(.*?)((\/)[^\/]*$)/mkdir -p \"\$pkgdir\/\1" \&\& cp \"\$srcname\2\" \"\$pkgdir\/platform\/qnx\2\"/'
+
+    ln -sf "../linuxbsd/wayland" "$builddir/platform/qnx/wayland"
+}
+
+_cp_platform_files() { 
+    for file in $_platform_files;
+    do
+        _dirname=$(echo $file | sed -r 's/(.*?)(\/)([^\/]*$)/\1/')  # regex magic
+        _basename=$(echo $file | sed -r 's/(.*?)(\/)([^\/]*$)/\3/') # regex magic
+        mkdir -p "$builddir/$_dirname"
+        cp "$srcdir/$_basename" "$builddir/$_dirname/$_basename"
+
+    done
+}
+
 build() {
-    # Copy custom input.h to compatibility location
-    if [ -f "$startdir/input-event-codes.h" ]; then
-        cp "$startdir/input-event-codes.h" "$builddir/platform/linuxbsd/wayland/input-event-codes.h"
-        echo "Copied input-event-codes.h to QNX compatibility directory"
-    else
-        echo "ERROR: input-event-codes.h not found in $startdir"
-        return 1
-    fi
+    mkdir -p "$builddir/linux"
+    cp "$srcdir/input-event-codes.h" "$builddir/linux"
 
     export BUILD_NAME="qnx_self_hosted"
-    for target in template_release; do
+    for target in editor; do
         scons -j$(nproc) \
             platform=qnx \
             target=$target \
@@ -136,10 +161,10 @@ package() {
         -t "$pkgdir"/usr/share/metainfo/
     install -Dm644 icon.png "$pkgdir"/usr/share/icons/hicolor/256x256/apps/godot.png
     install -Dm644 icon.svg "$pkgdir"/usr/share/icons/hicolor/scalable/apps/godot.svg
-    install -Dm644 misc/dist/linux/godot.6 -t "$pkgdir"/usr/share/man/man6/
-    #install -Dm755 bin/godot.*.editor.* "$pkgdir"/usr/bin/godot
+    # install -Dm644 misc/dist/linux/godot.6 -t "$pkgdir"/usr/share/man/man6/
+    install -Dm755 bin/godot.*.editor.dev* "$pkgdir"/usr/bin/godot
     #install -Dm755 bin/godot.*.template_debug.* "$pkgdir"/usr/bin/godot-template-debug
-    install -Dm755 bin/godot.*.template_release.* "$pkgdir"/usr/bin/godot-template-release
+    # install -Dm755 bin/godot.*.template_release.* "$pkgdir"/usr/bin/godot-template-release
 }
 
 templates() {
@@ -167,9 +192,38 @@ templates() {
 }
 
 sha512sums="
-fa9312eb979f35d1a62cb31057a68c0b7fa3269db7e0fa72abe8d4637838bd2d1abc649b0a10071cc364c88f292266590ce2b83869a7d97d8b5047da6e11f551  650bed9662eebf885249fe557801211448f3724d.tar.gz
-127a2ef78e0534b627f902d95e7433a1ca765053bcc06ea5999a0c9b0cf5ec276b652af88cce5468627cf2dc81dedb177c40b1c07259b6cd03bf5c323416a2d7  0001-godot-wayland-build-for-qnx.patch
-ea65d9829c9331418e22d3fd7453f4ad1faf4664a4b43dfc709953ff9946d4dd41a16d3db0a09b5cddda7eb5b71e42a9edb835437b6c93b74f1d1162423259ed  0002-openxr-library-fix.patch
-c05c5e3992c386befb48783c298477b98b9b5c6cc8d95d30753bc2c06bc674916b22a47c02f642ff187b366f5f1f378c8a5150368b6fe194785d18a996a91cc9  0003-do-not-force-gcc-for-llvm.patch
-33ae6f2e8cb4f71fe1217f52e1cab0e6ac73c6e2379613acc8c84afbf1144b3c88ea4140e3004bbe2c0f37c547bfb1c9a682f9ab2b7f8dac86d9bbc8643deefd  0004-library-linking-fix.patch
+eb29a1321b32f95814bb16a6beb54c8f4eb5e90aafea13922688e155ce7e7d42528791ad2977aa012b48080382ebf9d72c5de0cb387915e05f055a60c322c171  4.4.1-stable.tar.gz
+4dca7085b8a7c9286cc7064add314715d8af8e28ac68ebf2c6a6e8b4010af9e1276be2cc3bd011134700599e3f0cd2d458c1c19eccdfb4e710f65227f0116cf3  input-event-codes.h
+94e7b24b7a73a5a00d593bbe5123841ab2720d757fe8937d268867c8eb644d2df7bee6679e690ff5f8e1a1745282ae2d6bacc117332fc8098ac74fd7e5abc3cd  0001-add-qnx-platform.patch
+cb59ad3a6eb1563cc1d736bea9a9e37818dfe5cac53c817205e87cfa1bff88a610e581d39aca8161b4aa453c3fd51a2bda3b8e4c45d9739001fafd9dd4ae716c  0002-somehow-invalid-syntax.patch
+c319e3a6b0f5f7bc8b0fbe5eaca488d60a978ab9c69caf80e576924c3e2d9730de07f1e0f1a1e41b9be0722fb79eaa28099b573e89d8f3453ba840087da69a78  README.md
+1c205f4b57ecace35cd765881e6ff214a8fb13eba5fe24a77d298cd62b073db46fe03f0d6495c8aa83b9fd33730a3cbfea647d14596fe658599828915f620d43  os_qnx.cpp
+1aeb98bef5d50de9237416f747c25910ebd1ac575bdbd4cd77c91c9af03a7ba457bc68d23d071d80e8eca6f1c103ed853891a48e5b3fed0f91824a77cffac564  api.cpp
+bbf8060ff2a46080ca72a1e808763233f827f6723afb442b025db389b11a5206e1a07f16a3657910db002c0ebedf7bbb4cd7734ef15c1cb9547462dc22a575df  api.h
+ce35c06aecaebfa79ce4dff654dd7843f9625b8405d89a53d1bf13679776d707bf024af0584693e82b2d0399b592269ada34c6dad3dd17773f4796e3bf872cee  crash_handler_qnx.cpp
+99595570980589a6ccc739754c3865477b6a5246d9d3f3a92b7295a25fd37eeea6e368988bf11356c95ce7eed0fcb1094b5fca2fd174ee2cba831808a82606c4  crash_handler_qnx.h
+c39feda2b1f932933fba9ae1de78d937d87823d4f0c69577f224e65a089263ef58c5d6305c6ddfad0dc6f020f2240009f9a801efd0777eebecfb904d937d7909  platform_gl.h
+2896d7302b39094210e5a2354d40d9666c8a96eb4cf69c2e3941a443b6f63d903155b4cd5fd697ff6cd04d597bfa0b0e3cdb7ff20b5d40b28ae91874745459bf  gl_manager_qnx_egl.cpp
+94cd9244b02be1755eb5dc308eafa9d66ab9bf0fd1c93b0b89f84d343fdcace73a996545d2fbf113c03781d69ff15b0e40217ac0b1993f7071ba521714c65df5  gl_manager_qnx_egl.h
+6fc47355ce256c3a909e818c4ca5272f08af7ed5ea2b4f7aaed347151c6f18ce2ea6371d97c6269b2cd14a198b2198e199e43d159b110b7449f0a394add8b93d  EditorExportPlatformQnx.xml
+04f9737f26404a3d04eb49a39f22ae3ba11642aefc7b73919403f8ba9a10b1c28477229439b066ddde1d0b55ed5de52e185dd1268ab3dfabe32c6e9d8585f467  export.cpp
+acdda0ab7c26f5474110253e91eeeaffe3c9246e967597dca2eb546914bfa1730a581818ac8af5fc843b0ee53c80c6fd8961d7c28037feb0501e7a83832198f0  export.h
+74b56deb7a90c859b74ed05ed2a7d0c4b4a142891448af8c5d233aa486b7b4626c616ab195ee07360f187ce459b80aa25a81844ba52c27f2b9ea1181d5d02277  export_plugin.cpp
+5af63b01b4fded4efba6dcf3f46526ea4a4925537b94490741510128f505ed33fda7d4e507062908d4b633916380660ae1fdc4650a758bfb900069a399eaef39  export_plugin.h
+bbd63f8773e6d5b482d25bb81ef25f1dfdcc8aabc17466ebf0811556e6a267b2c33128f612e58e905722b811c681135d86af0712a51f2ddfd109778ece637cc4  logo.svg
+c1a2f530bc6f23fd3fa774d0bc4889de95326f7a1ddc424b1456212823c9f46937ef08964787441370c3e06ce86f3b3baab0a7fbcc795c1370311c017c33821b  run_icon.svg
+0e3ad50ad408705cb981e3cde437f32e6a109e1eb6e195d2c8c6e001dd97d18d414b0f87a01d4f2c6142ea04582442be48b26c4406e14617e293373f2cae3fcf  logo_svg.gen.h
+37a78b15d25b4e159c0c9d4b352dac542af3085255b524e17039985474cad1bfbea93a013acdf32533221e1f34d706a3618abf644419efcd557070c84d6fd53f  run_icon_svg.gen.h
+66b98f122169f54c0127985355f8ee30413824752e721c3c7dfae133a274c69dd4999c80a12dcbddc8985b8f00c8338d7b44fec44fbc3ff297a4fc74aa05e31d  detect.py
+b089ed9a3dea7920372a296344a20bc0f96cdbc529b3188fe48ef72c3c3afad3d003560d7e584352e0ca2cb3cb1d88bbd35a44fe7006bbf91f720e99642b788c  SCsub
+aa19ea417ca50d9bb1bab6a3ba865f79b168c9b435b235c8518cc6c9ec2ee2dd2c4a6a5867fa4626730fbaa9fe803ce92d251688050ea5c90c7458b18812f6a6  godot_qnx.cpp
+01249ced3baf35816bf20a26cac6ab337f2e435217c8ca13dee0fbc88ad812ec7f4bd5612b7aa348d346fa3c12e21c48fa0d22cde335565728b3fd6cc923d6dc  key_mapping_qnx.cpp
+b533fa1beb4a21113b33fc17f8221f7fbeeedf8a6ef3aa86bfcc9948d006f0a36a5df0f516f8d6adffeca113a7f926c2a302a669451be52cbfe0e66b978f7175  key_mapping_qnx.h
+5ece4fada428d66558069c94c78d44f58c27d534009c375e6a238883dee59ae39de907764718fd4cae63d802741cb50426ecf27fab9534041471ed9cac064374  os_qnx.h
+d39f701b46936c9a77f3e6f5b114c1dfa1c6ba20dfffc9471b45e4f46b14d5102769f47707596988e1fdefb7fca4aa093346be512c913af1ddb93b31657eaea5  platform_config.h
+c34faf823140d46385d4cd83d5d0b1c78cc85ec0e371752ac53eaa26fd2bf638523c02de1e50cfe0d6e177aef87bc43184acb72801bf8824eb03fa737c9b8bd9  platform_qnx_builders.py
+9284c1e2cc1be785b96e7f7a336ef590393e44d3f8d3bcc3c03136b6e78ea24106dc6bbdb21f4c45161468d39341a3761f4a38e2352cea39881a94a23d5379f9  rendering_context_driver_vulkan_screen.cpp
+8662874781f00ae7acd392b2783d6c902d6457ce8ff61b42e5e05012c961430ffe84d8b0bb59a60f7b753e394900bf317c5079b3221d841d3996d9e835956662  rendering_context_driver_vulkan_screen.h
+e138bf1773bbdf79e3ec3846979701ec5e453cdeb1d86be36d8f17d8c8676cbfd31a864409608e503dc1954a633542e2462df0397c5652f5c4572817eaa6c6c4  platform_qnx_builders.cpython-314.pyc
+815462fd163dfec4b162c49a0d7547cef73c3118edc4b8a47a0db1300f722c5c858217de1637dede7a29951049def504e5a179b944c4311aca00edd3136f68ae  detect.cpython-314.pyc
 "

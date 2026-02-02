@@ -1,0 +1,109 @@
+diff --git a/drivers/gl_context/SCsub b/drivers/gl_context/SCsub
+index a2ba425..c723f2a 100644
+--- a/drivers/gl_context/SCsub
++++ b/drivers/gl_context/SCsub
+@@ -3,7 +3,7 @@ from misc.utility.scons_hints import *
+ 
+ Import("env")
+ 
+-if env["platform"] in ["macos", "windows", "linuxbsd"]:
++if env["platform"] in ["macos", "windows", "linuxbsd", "qnx"]:
+     # Thirdparty source files
+     thirdparty_dir = "#thirdparty/glad/"
+     thirdparty_sources = ["gl.c"]
+     diff --git a/thirdparty/basis_universal/encoder/basisu_enc.cpp b/thirdparty/basis_universal/encoder/basisu_enc.cpp
+index fff98e83014..838496ca277 100644
+--- a/thirdparty/basis_universal/encoder/basisu_enc.cpp
++++ b/thirdparty/basis_universal/encoder/basisu_enc.cpp
+@@ -243,7 +243,7 @@ namespace basisu
+ 	{
+ 		QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(pTicks));
+ 	}
+-#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__)
++#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__) || defined(__QNXNTO__)
+ #include <sys/time.h>
+ 	inline void query_counter(timer_ticks* pTicks)
+ 	{
+
+diff --git a/thirdparty/jolt_physics/Jolt/Core/Core.h b/thirdparty/jolt_physics/Jolt/Core/Core.h
+index 01b6afbf19f..5f3132f5b0f 100644
+--- a/thirdparty/jolt_physics/Jolt/Core/Core.h
++++ b/thirdparty/jolt_physics/Jolt/Core/Core.h
+@@ -94,6 +94,8 @@
+ 	#endif
+ #elif defined(__EMSCRIPTEN__)
+ 	#define JPH_PLATFORM_WASM
++#elif defined(__QNXNTO__)
++	#define JPH_PLATFORM_QNX
+ #endif
+ 
+ // Platform helper macros
+@@ -390,7 +392,7 @@
+ 	// Creating one should only be a couple of minutes of work if you have the documentation for the platform
+ 	// (you only need to define JPH_BREAKPOINT, JPH_PLATFORM_BLUE_GET_TICKS, JPH_PLATFORM_BLUE_MUTEX*, JPH_PLATFORM_BLUE_RWLOCK* and include the right header).
+ 	#include <Jolt/Core/PlatformBlue.h>
+-#elif defined(JPH_PLATFORM_LINUX) || defined(JPH_PLATFORM_ANDROID) || defined(JPH_PLATFORM_MACOS) || defined(JPH_PLATFORM_IOS) || defined(JPH_PLATFORM_FREEBSD)
++#elif defined(JPH_PLATFORM_LINUX) || defined(JPH_PLATFORM_ANDROID) || defined(JPH_PLATFORM_MACOS) || defined(JPH_PLATFORM_IOS) || defined(JPH_PLATFORM_FREEBSD) || defined(JPH_PLATFORM_QNX)
+ 	#if defined(JPH_CPU_X86)
+ 		#define JPH_BREAKPOINT	__asm volatile ("int $0x3")
+ 	#elif defined(JPH_CPU_ARM) || defined(JPH_CPU_RISCV) || defined(JPH_CPU_E2K) || defined(JPH_CPU_PPC) || defined(JPH_CPU_LOONGARCH)
+
+diff --git a/thirdparty/embree/common/sys/sysinfo.cpp b/thirdparty/embree/common/sys/sysinfo.cpp
+index 4583e49b1ca..ad4969d1bc7 100644
+--- a/thirdparty/embree/common/sys/sysinfo.cpp
++++ b/thirdparty/embree/common/sys/sysinfo.cpp
+@@ -659,7 +659,7 @@ namespace embree
+     static int nThreads = -1;
+     if (nThreads != -1) return nThreads;
+ 
+-#if defined(__MACOSX__) || defined(__ANDROID__)
++#if defined(__MACOSX__) || defined(__ANDROID__) || defined(__QNXNTO__)
+     nThreads = sysconf(_SC_NPROCESSORS_ONLN); // does not work in Linux LXC container
+     assert(nThreads);
+ #elif defined(__EMSCRIPTEN__)
+
+diff --git a/thirdparty/miniupnpc/src/minissdpc.c b/thirdparty/miniupnpc/src/minissdpc.c
+index 57cb99962e6..575e65198ae 100644
+--- a/thirdparty/miniupnpc/src/minissdpc.c
++++ b/thirdparty/miniupnpc/src/minissdpc.c
+@@ -79,7 +79,7 @@ struct sockaddr_un {
+ #endif
+ #endif
+ 
+-#if defined(HAS_IP_MREQN) && defined(NEED_STRUCT_IP_MREQN)
++#if defined(HAS_IP_MREQN) && defined(NEED_STRUCT_IP_MREQN) && __QNX__ < 800
+ /* Several versions of glibc don't define this structure,
+  * define it here and compile with CFLAGS NEED_STRUCT_IP_MREQN */
+ struct ip_mreqn
+
+diff --git a/drivers/unix/dir_access_unix.cpp b/drivers/unix/dir_access_unix.cpp
+index b1139b7e3b7..b496b9f4c76 100644
+--- a/drivers/unix/dir_access_unix.cpp
++++ b/drivers/unix/dir_access_unix.cpp
+@@ -157,6 +157,17 @@ String DirAccessUnix::get_next() {
+ 	// the type is a link, in that case we want to resolve the link to
+ 	// known if it points to a directory. stat() will resolve the link
+ 	// for us.
++#if defined(__QNXNTO__)
++	struct stat flags = {};
++	String f = current_dir.path_join(fname);
++	if (stat(f.utf8().get_data(), &flags) == 0) {
++		_cisdir = S_ISDIR(flags.st_mode);
++	}
++	else
++	{
++		_cisdir = false;
++	}
++#else // __QNXNTO__
+ 	if (entry->d_type == DT_UNKNOWN || entry->d_type == DT_LNK) {
+ 		String f = current_dir.path_join(fname);
+ 
+@@ -169,6 +180,7 @@ String DirAccessUnix::get_next() {
+ 	} else {
+ 		_cisdir = (entry->d_type == DT_DIR);
+ 	}
++#endif
+ 
+ 	_cishidden = is_hidden(fname);
+ 
+
