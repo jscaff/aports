@@ -24,7 +24,6 @@ index fff98e83014..838496ca277 100644
  #include <sys/time.h>
  	inline void query_counter(timer_ticks* pTicks)
  	{
-
 diff --git a/thirdparty/jolt_physics/Jolt/Core/Core.h b/thirdparty/jolt_physics/Jolt/Core/Core.h
 index 01b6afbf19f..5f3132f5b0f 100644
 --- a/thirdparty/jolt_physics/Jolt/Core/Core.h
@@ -47,7 +46,6 @@ index 01b6afbf19f..5f3132f5b0f 100644
  	#if defined(JPH_CPU_X86)
  		#define JPH_BREAKPOINT	__asm volatile ("int $0x3")
  	#elif defined(JPH_CPU_ARM) || defined(JPH_CPU_RISCV) || defined(JPH_CPU_E2K) || defined(JPH_CPU_PPC) || defined(JPH_CPU_LOONGARCH)
-
 diff --git a/thirdparty/embree/common/sys/sysinfo.cpp b/thirdparty/embree/common/sys/sysinfo.cpp
 index 4583e49b1ca..ad4969d1bc7 100644
 --- a/thirdparty/embree/common/sys/sysinfo.cpp
@@ -61,7 +59,6 @@ index 4583e49b1ca..ad4969d1bc7 100644
      nThreads = sysconf(_SC_NPROCESSORS_ONLN); // does not work in Linux LXC container
      assert(nThreads);
  #elif defined(__EMSCRIPTEN__)
-
 diff --git a/thirdparty/miniupnpc/src/minissdpc.c b/thirdparty/miniupnpc/src/minissdpc.c
 index 57cb99962e6..575e65198ae 100644
 --- a/thirdparty/miniupnpc/src/minissdpc.c
@@ -75,7 +72,6 @@ index 57cb99962e6..575e65198ae 100644
  /* Several versions of glibc don't define this structure,
   * define it here and compile with CFLAGS NEED_STRUCT_IP_MREQN */
  struct ip_mreqn
-
 diff --git a/drivers/unix/dir_access_unix.cpp b/drivers/unix/dir_access_unix.cpp
 index b1139b7e3b7..b496b9f4c76 100644
 --- a/drivers/unix/dir_access_unix.cpp
@@ -106,4 +102,309 @@ index b1139b7e3b7..b496b9f4c76 100644
  
  	_cishidden = is_hidden(fname);
  
+diff --git a/drivers/unix/ip_unix.cpp b/drivers/unix/ip_unix.cpp
+index d58dbced03b..be4962e4e84 100644
+--- a/drivers/unix/ip_unix.cpp
++++ b/drivers/unix/ip_unix.cpp
+@@ -82,7 +82,11 @@ void IPUnix::_resolve_hostname(List<IPAddress> &r_addresses, const String &p_hos
+ 		hints.ai_flags = 0;
+ 	} else {
+ 		hints.ai_family = AF_UNSPEC;
++#if defined(__QNXNTO__)
++		hints.ai_flags = EAI_ADDRFAMILY;
++#else // __QNXNTO__
+ 		hints.ai_flags = AI_ADDRCONFIG;
++#endif // __QNXNTO__
+ 	}
+ 	hints.ai_flags &= ~AI_NUMERICHOST;
+ 
+diff --git a/drivers/unix/os_unix.cpp b/drivers/unix/os_unix.cpp
+index a70be9326e8..c62ae897c06 100644
+--- a/drivers/unix/os_unix.cpp
++++ b/drivers/unix/os_unix.cpp
+@@ -1024,6 +1024,19 @@ String OS_Unix::get_executable_path() const {
+ 	String path = String::utf8(resolved_path);
+ 	delete[] resolved_path;
+ 
++	return path;
++#elif defined(__QNXNTO__)
++	Error err;
++	Ref<FileAccess> f = FileAccess::open("/proc/self/exefile", FileAccess::READ, &err);
++	String path;
++	if (f.is_valid()) {
++		path = f->get_line().strip_edges();
++	}
++
++	if (path.is_empty()) {
++		WARN_PRINT("Couldn't get executable path from /proc/self/exefile, using argv[0]");
++		return OS::get_executable_path();
++	}
+ 	return path;
+ #else
+ 	ERR_PRINT("Warning, don't know how to obtain executable path on this OS! Please override this function properly.");
+diff --git a/core/os/thread.h b/core/os/thread.h
+index 472998673a3..a8fd9771c96 100644
+--- a/core/os/thread.h
++++ b/core/os/thread.h
+@@ -92,7 +92,7 @@ public:
+ 		void (*term)() = nullptr;
+ 	};
+ 
+-#if defined(__cpp_lib_hardware_interference_size) && !defined(ANDROID_ENABLED) // This would be OK with NDK >= 26.
++#if defined(__cpp_lib_hardware_interference_size) && !defined(ANDROID_ENABLED) && !defined(QNX_ENABLED) // This would be OK with NDK >= 26.
+ #if defined(__GNUC__) && !defined(__clang__)
+ #pragma GCC diagnostic push
+ #pragma GCC diagnostic ignored "-Winterference-size"
+diff --git a/drivers/alsa/audio_driver_alsa.h b/drivers/alsa/audio_driver_alsa.h
+index b62d7188ddc..b2ec9d93421 100644
+--- a/drivers/alsa/audio_driver_alsa.h
++++ b/drivers/alsa/audio_driver_alsa.h
+@@ -38,7 +38,7 @@
+ #include "core/templates/safe_refcount.h"
+ #include "servers/audio_server.h"
+ 
+-#ifdef SOWRAP_ENABLED
++#if defined(SOWRAP_ENABLED) && !defined(__QNX__)
+ #include "asound-so_wrap.h"
+ #else
+ #include <alsa/asoundlib.h>
+diff --git a/drivers/alsa/audio_driver_alsa.cpp b/drivers/alsa/audio_driver_alsa.cpp
+index 6ee22b6eb59..43f8ec4ec8d 100644
+--- a/drivers/alsa/audio_driver_alsa.cpp
++++ b/drivers/alsa/audio_driver_alsa.cpp
+@@ -154,7 +154,7 @@ Error AudioDriverALSA::init_output_device() {
+ }
+ 
+ Error AudioDriverALSA::init() {
+-#ifdef SOWRAP_ENABLED
++#if defined(SOWRAP_ENABLED) && !defined(__QNX__)
+ #ifdef DEBUG_ENABLED
+ 	int dylibloader_verbose = 1;
+ #else
+@@ -174,7 +174,12 @@ Error AudioDriverALSA::init() {
+ 	String version = String::utf8(snd_asoundlib_version());
+ 	Vector<String> ver_parts = version.split(".");
+ 	if (ver_parts.size() >= 2) {
++#ifdef __QNX__
++		// Accept ALSA/SALSA 1.0.x or higher
++		ver_ok = (ver_parts[0].to_int() >= 1);
++#else
+ 		ver_ok = ((ver_parts[0].to_int() == 1 && ver_parts[1].to_int() >= 1)) || (ver_parts[0].to_int() > 1); // 1.1.0
++#endif
+ 	}
+ 	print_verbose(vformat("ALSA %s detected.", version));
+ 	if (!ver_ok) {
+@@ -332,6 +337,12 @@ void AudioDriverALSA::unlock() {
+ 
+ void AudioDriverALSA::finish_output_device() {
+ 	if (pcm_handle) {
++		int state = snd_pcm_state(pcm_handle);
++		
++		if (state == SND_PCM_STATE_RUNNING || state == SND_PCM_STATE_DRAINING) {
++			snd_pcm_drain(pcm_handle);
++		}
++
+ 		snd_pcm_close(pcm_handle);
+ 		pcm_handle = nullptr;
+ 	}
 
+diff --git a/drivers/gles3/storage/config.h b/drivers/gles3/storage/config.h
+index 9727346cf60..6cb034fb128 100644
+--- a/drivers/gles3/storage/config.h
++++ b/drivers/gles3/storage/config.h
+@@ -39,7 +39,7 @@
+ 
+ #include "platform_gl.h"
+ 
+-#ifdef ANDROID_ENABLED
++#if (defined(ANDROID_ENABLED) || defined(QNX_ENABLED))
+ typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC)(GLenum, GLenum, GLuint, GLint, GLint, GLsizei);
+ typedef void (*PFNGLTEXSTORAGE3DMULTISAMPLEPROC)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei, GLboolean);
+ typedef void (*PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)(GLenum, GLenum, GLenum, GLuint, GLint, GLsizei);
+@@ -106,7 +106,7 @@ public:
+ 	// ANGLE shader workaround.
+ 	bool polyfill_half2float = true;
+ 
+-#ifdef ANDROID_ENABLED
++#if defined(ANDROID_ENABLED) || defined(QNX_ENABLED)
+ 	PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC eglFramebufferTextureMultiviewOVR = nullptr;
+ 	PFNGLTEXSTORAGE3DMULTISAMPLEPROC eglTexStorage3DMultisample = nullptr;
+ 	PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC eglFramebufferTexture2DMultisampleEXT = nullptr;
+
+diff --git a/drivers/gles3/storage/render_scene_buffers_gles3.cpp b/drivers/gles3/storage/render_scene_buffers_gles3.cpp
+index 7d899fad778..d800cd4ab82 100644
+--- a/drivers/gles3/storage/render_scene_buffers_gles3.cpp
++++ b/drivers/gles3/storage/render_scene_buffers_gles3.cpp
+@@ -35,7 +35,7 @@
+ #include "texture_storage.h"
+ #include "utilities.h"
+ 
+-#ifdef ANDROID_ENABLED
++#if (defined(ANDROID_ENABLED) || defined(QNX_ENABLED))
+ #define glFramebufferTextureMultiviewOVR GLES3::Config::get_singleton()->eglFramebufferTextureMultiviewOVR
+ #define glTexStorage3DMultisample GLES3::Config::get_singleton()->eglTexStorage3DMultisample
+ #define glFramebufferTexture2DMultisampleEXT GLES3::Config::get_singleton()->eglFramebufferTexture2DMultisampleEXT
+@@ -61,7 +61,7 @@ RenderSceneBuffersGLES3::~RenderSceneBuffersGLES3() {
+ void RenderSceneBuffersGLES3::_rt_attach_textures(GLuint p_color, GLuint p_depth, GLsizei p_samples, uint32_t p_view_count) {
+ 	if (p_view_count > 1) {
+ 		if (p_samples > 1) {
+-#if defined(ANDROID_ENABLED) || defined(WEB_ENABLED)
++#if defined(ANDROID_ENABLED) || defined(WEB_ENABLED) || defined(QNX_ENABLED)
+ 			glFramebufferTextureMultisampleMultiviewOVR(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, p_color, 0, p_samples, 0, p_view_count);
+ 			glFramebufferTextureMultisampleMultiviewOVR(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, p_depth, 0, p_samples, 0, p_view_count);
+ #else
+@@ -77,7 +77,7 @@ void RenderSceneBuffersGLES3::_rt_attach_textures(GLuint p_color, GLuint p_depth
+ 		}
+ 	} else {
+ 		if (p_samples > 1) {
+-#ifdef ANDROID_ENABLED
++#if defined(ANDROID_ENABLED) || defined(QNX_ENABLED)
+ 			glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p_color, 0, p_samples);
+ 			glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, p_depth, 0, p_samples);
+ #else
+@@ -93,7 +93,7 @@ void RenderSceneBuffersGLES3::_rt_attach_textures(GLuint p_color, GLuint p_depth
+ GLuint RenderSceneBuffersGLES3::_rt_get_cached_fbo(GLuint p_color, GLuint p_depth, GLsizei p_samples, uint32_t p_view_count) {
+ 	FBDEF new_fbo;
+ 
+-#if defined(ANDROID_ENABLED) || defined(WEB_ENABLED)
++#if defined(ANDROID_ENABLED) || defined(WEB_ENABLED) || defined(QNX_ENABLED)
+ 	// There shouldn't be more then 3 entries in this...
+ 	for (const FBDEF &cached_fbo : msaa3d.cached_fbos) {
+ 		if (cached_fbo.color == p_color && cached_fbo.depth == p_depth) {
+@@ -328,7 +328,7 @@ void RenderSceneBuffersGLES3::_check_render_buffers() {
+ 			glGenTextures(1, &msaa3d.color);
+ 			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, msaa3d.color);
+ 
+-#ifdef ANDROID_ENABLED
++#if defined(ANDROID_ENABLED) || defined(QNX_ENABLED)
+ 			glTexStorage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, msaa3d.samples, color_internal_format, internal_size.x, internal_size.y, view_count, GL_TRUE);
+ #else
+ 			glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, msaa3d.samples, color_internal_format, internal_size.x, internal_size.y, view_count, GL_TRUE);
+@@ -340,7 +340,7 @@ void RenderSceneBuffersGLES3::_check_render_buffers() {
+ 			glGenTextures(1, &msaa3d.depth);
+ 			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, msaa3d.depth);
+ 
+-#ifdef ANDROID_ENABLED
++#if defined(ANDROID_ENABLED) || defined(QNX_ENABLED)
+ 			glTexStorage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, msaa3d.samples, GL_DEPTH_COMPONENT24, internal_size.x, internal_size.y, view_count, GL_TRUE);
+ #else
+ 			glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, msaa3d.samples, GL_DEPTH_COMPONENT24, internal_size.x, internal_size.y, view_count, GL_TRUE);
+@@ -365,7 +365,7 @@ void RenderSceneBuffersGLES3::_check_render_buffers() {
+ 			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, 0);
+ 			glBindFramebuffer(GL_FRAMEBUFFER, GLES3::TextureStorage::system_fbo);
+ #endif
+-#if defined(ANDROID_ENABLED) || defined(WEB_ENABLED) // Only supported on OpenGLES!
++#if defined(ANDROID_ENABLED) || defined(WEB_ENABLED) || defined(QNX_ENABLED)// Only supported on OpenGLES!
+ 		} else if (!use_internal_buffer) {
+ 			// We are going to render directly into our render target textures,
+ 			// these can change from frame to frame as we cycle through swapchains,
+
+diff --git a/drivers/gles3/storage/texture_storage.cpp b/drivers/gles3/storage/texture_storage.cpp
+index de593817685..db0924c0e1b 100644
+--- a/drivers/gles3/storage/texture_storage.cpp
++++ b/drivers/gles3/storage/texture_storage.cpp
+@@ -37,7 +37,7 @@
+ #include "config.h"
+ #include "utilities.h"
+ 
+-#ifdef ANDROID_ENABLED
++#if defined(ANDROID_ENABLED) || defined(QNX_ENABLED)
+ #define glFramebufferTextureMultiviewOVR GLES3::Config::get_singleton()->eglFramebufferTextureMultiviewOVR
+ #endif
+ 
+@@ -832,7 +832,7 @@ void TextureStorage::texture_external_initialize(RID p_texture, int p_width, int
+ 	glGenTextures(1, &texture.tex_id);
+ 	glBindTexture(texture.target, texture.tex_id);
+ 
+-#ifdef ANDROID_ENABLED
++	#if defined(ANDROID_ENABLED) || defined(QNX_ENABLED) 
+ 	if (texture.target == _GL_TEXTURE_EXTERNAL_OES) {
+ 		if (p_external_buffer) {
+ 			GLES3::Config::get_singleton()->eglEGLImageTargetTexture2DOES(_GL_TEXTURE_EXTERNAL_OES, reinterpret_cast<void *>(p_external_buffer));
+@@ -1025,7 +1025,7 @@ void TextureStorage::texture_external_update(RID p_texture, int p_width, int p_h
+ 	tex->alloc_width = tex->width = p_width;
+ 	tex->alloc_height = tex->height = p_height;
+ 
+-#ifdef ANDROID_ENABLED
++#if defined(ANDROID_ENABLED) || defined(QNX_ENABLED) 
+ 	if (tex->target == _GL_TEXTURE_EXTERNAL_OES && p_external_buffer) {
+ 		glBindTexture(_GL_TEXTURE_EXTERNAL_OES, tex->tex_id);
+ 		GLES3::Config::get_singleton()->eglEGLImageTargetTexture2DOES(_GL_TEXTURE_EXTERNAL_OES, reinterpret_cast<void *>(p_external_buffer));
+
+diff --git a/modules/raycast/SCsub b/modules/raycast/SCsub
+index b2e86382b28..20b2050a982 100644
+--- a/modules/raycast/SCsub
++++ b/modules/raycast/SCsub
+@@ -90,7 +90,7 @@ if env["builtin_embree"]:
+ 
+     if not env.msvc:
+         # Flags synced with upstream gnu.cmake.
+-        if env["arch"] == "arm64" and env["platform"] == "linuxbsd" and not env["use_llvm"]:
++        if env["arch"] == "arm64" and env["platform"] in ["linuxbsd","qnx"] and not env["use_llvm"]:
+             env_thirdparty.Append(CXXFLAGS=["-flax-vector-conversions"])
+ 
+         env_thirdparty.Append(
+diff --git a/platform/qnx/README.md b/platform/qnx/README.md
+new file mode 100644
+index 00000000000..dfe89c48521
+
+diff --git a/scu_builders.py b/scu_builders.py
+index 8e1f91d7406..b3e56d2d691 100644
+--- a/scu_builders.py
++++ b/scu_builders.py
+@@ -308,6 +308,7 @@ def generate_scu_files(max_includes_per_scu):
+     process_folder(["platform/macos/export"])
+     process_folder(["platform/web/export"])
+     process_folder(["platform/windows/export"])
++    process_folder(["platform/qnx/export"])
+ 
+     process_folder(["modules/lightmapper_rd"])
+     process_folder(["modules/gltf"])
+
+diff --git a/thirdparty/embree/common/sys/platform.h b/thirdparty/embree/common/sys/platform.h
+index 9f08cd1516b..779f9947966 100644
+--- a/thirdparty/embree/common/sys/platform.h
++++ b/thirdparty/embree/common/sys/platform.h
+@@ -107,7 +107,7 @@
+ #endif
+ 
+ /* try to detect other Unix systems */
+-#if defined(__unix__) || defined (unix) || defined(__unix) || defined(_unix)
++#if defined(__unix__) || defined (unix) || defined(__unix) || defined(_unix) || defined(__QNXNTO__)
+ #  if !defined(__UNIX__)
+ #     define __UNIX__
+ #  endif
+
+diff --git a/thirdparty/icu4c/common/unicode/locid.h b/thirdparty/icu4c/common/unicode/locid.h
+index e1afd598cf9..ee44709d802 100644
+--- a/thirdparty/icu4c/common/unicode/locid.h
++++ b/thirdparty/icu4c/common/unicode/locid.h
+@@ -1219,7 +1219,11 @@ Locale::getVariant() const
+ inline const char *
+ Locale::getName() const
+ {
++    #if defined(__QNXNTO__)
++    return "en"; // FIXME
++    #else
+     return fullName;
++    #endif
+ }
+ 
+ template<typename StringClass, typename OutputIterator> inline void
+
+diff --git a/thirdparty/mbedtls/library/platform_util.c b/thirdparty/mbedtls/library/platform_util.c
+index 19ef07aead7..6594700fb62 100644
+--- a/thirdparty/mbedtls/library/platform_util.c
++++ b/thirdparty/mbedtls/library/platform_util.c
+@@ -11,6 +11,11 @@
+  * mbedtls_config.h, which pulls in glibc's features.h. Harmless on other platforms
+  * except OpenBSD, where it stops us accessing explicit_bzero.
+  */
++#if defined(__QNXNTO__)
++// Needed for _POSIX_VERSION
++#include <unistd.h>
++#endif
++
+ #if !defined(_POSIX_C_SOURCE) && !defined(__OpenBSD__)
+ #define _POSIX_C_SOURCE 200112L
+ #endif

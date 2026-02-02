@@ -1,0 +1,50 @@
+diff --git a/drivers/egl/egl_manager.cpp b/drivers/egl/egl_manager.cpp
+index c545de3..9999e80 100644
+--- a/drivers/egl/egl_manager.cpp
++++ b/drivers/egl/egl_manager.cpp
+@@ -512,17 +512,17 @@ Error EGLManager::initialize(void *p_native_display) {
+ 		}
+ 	}
+ #endif
+-
+-	String client_extensions_string = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
+-
+-	// If the above method fails, we don't support client extensions, so there's nothing to check.
+-	if (eglGetError() == EGL_SUCCESS) {
+-		const char *platform = _get_platform_extension_name();
+-		if (!client_extensions_string.split(" ").has(platform)) {
+-			ERR_FAIL_V_MSG(ERR_UNAVAILABLE, vformat("EGL platform extension \"%s\" not found.", platform));
+-		}
+-	}
+-
++	//
++	// String client_extensions_string = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
++	//
++	// // If the above method fails, we don't support client extensions, so there's nothing to check.
++	// if (eglGetError() == EGL_SUCCESS) {
++	// 	const char *platform = _get_platform_extension_name();
++	// 	if (!client_extensions_string.split(" ").has(platform)) {
++	// 		ERR_FAIL_V_MSG(ERR_UNAVAILABLE, vformat("EGL platform extension \"%s\" not found.", platform));
++	// 	}
++	// }
++	//
+ 	return OK;
+ }
+
+diff --git a/thirdparty/glad/egl.c b/thirdparty/glad/egl.c
+index c88d6c1..6072253 100644
+--- a/thirdparty/glad/egl.c
++++ b/thirdparty/glad/egl.c
+@@ -207,9 +207,9 @@ static int glad_egl_find_core_egl(EGLDisplay display) {
+     if (display == NULL) {
+         display = EGL_NO_DISPLAY; /* this is usually NULL, better safe than sorry */
+     }
+-    if (display == EGL_NO_DISPLAY) {
+-        display = eglGetCurrentDisplay();
+-    }
++    // if (display == EGL_NO_DISPLAY) {
++    //     display = eglGetCurrentDisplay();
++    // }
+ #ifdef EGL_VERSION_1_4
+     if (display == EGL_NO_DISPLAY) {
+         display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
