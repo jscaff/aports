@@ -1,5 +1,6 @@
-# Contributor: Sheila Aman <sheila@vulpine.house>
-# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Alpine-Contributor: Sheila Aman <sheila@vulpine.house>
+# Alpine-Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Elliott Mazzuca <emazzuca@qnx.com>
 pkgname=protobuf
 pkgver=31.1
 pkgrel=1
