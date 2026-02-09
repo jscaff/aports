@@ -1,7 +1,8 @@
-# Contributor: V.Krishn <vkrishn4@gmail.com>
-# Contributor: Eivind Uggedal <eu@eju.no>
-# Contributor: TBK <alpine@jjtc.eu>
-# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+# Alpine-Contributor: V.Krishn <vkrishn4@gmail.com>
+# Alpine-Contributor: Eivind Uggedal <eu@eju.no>
+# Alpine-Contributor: TBK <alpine@jjtc.eu>
+# Alpine-Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Felix Xing <fxing@qnx.com>
 pkgname=valkey
 pkgver=9.0.0
 pkgrel=1
