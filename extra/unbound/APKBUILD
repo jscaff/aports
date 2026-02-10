@@ -40,6 +40,7 @@ source="
     qnx-build.patch
     qnx-endian.patch
     swig-4.4.patch
+    use-system-default-so-sndbuf.patch
 "
 
 # secfixes:
@@ -85,6 +86,7 @@ build() {
         --build="$CBUILD" \
 		--host="$CHOST" \
 		--prefix=/usr \
+		--sbindir=/usr/bin \
 		--sysconfdir=/etc \
 		--mandir=/usr/share/man \
 		--localstatedir=/var \
@@ -129,10 +131,6 @@ package() {
 
 	install -D -m644 doc/CREDITS doc/Changelog doc/FEATURES \
 		doc/README doc/TODO -t "$pkgdir"/usr/share/doc/$pkgname/
-
-	cd "$pkgdir"
-
-	install -d -m755 "$pkgdir"/etc/unbound/unbound.conf.d
 }
 
 py() {
@@ -149,4 +147,5 @@ sha512sums="
 35f6acade9194f15b47e15ecd9b9acf7918e9bfb4bd56312cf7bcab98e6b4b98aa9c6114e6b3880dce890349d60a42aa3823938e3b60c6bcf72cc531d29181c3  qnx-build.patch
 529ea92eb2d743bb250034ff0cf3389d8de82b4770cb7dfe4b71ae3bb631073c142393e7833ac96f782295418022c8f334772cda39dd339706fab7a175ae7374  qnx-endian.patch
 eae1aa98a016c00eecc5ac23bd74bf25bd0ba6b33e45499fc14961c1bf0bfa1b080a8f770f41abf0a86bf55532518246e0068f34e3c2ac234c63d42486d82e70  swig-4.4.patch
+2c9fe5b952fc700ea1df720dfac5a40dd57c43772b43f7bd7fcebf9b9ec18dd191005afcd8125f12710b45f1e14c93b8970464b350de8ab51580b9bae508ca6a  use-system-default-so-sndbuf.patch
 "
