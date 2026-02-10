@@ -1,0 +1,152 @@
+# Alpine-Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Alpine-Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Alpine-Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=unbound
+pkgver=1.24.2
+pkgrel=0
+pkgdesc="Unbound is a validating, recursive, and caching DNS resolver"
+url="https://nlnetlabs.nl/projects/unbound/about/"
+arch="all"
+license="BSD-3-Clause"
+depends="dnssec-root"
+depends_dev="expat-dev"
+makedepends="$depends_dev
+	hiredis-dev
+	libevent-dev
+	nghttp2-dev
+	openssl-dev>3
+	protobuf-c-dev
+	python3-dev
+	swig
+    autoconf
+	"
+# checkdepends="
+# 	bind-tools
+# 	ldns-tools
+# 	"
+install="$pkgname.pre-install"
+pkgusers="unbound"
+pkggroups="unbound"
+subpackages="
+	$pkgname-dbg
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-libs
+	py3-unbound:py
+	"
+source="
+    https://unbound.net/downloads/unbound-$pkgver.tar.gz
+    qnx-build.patch
+    qnx-endian.patch
+    swig-4.4.patch
+"
+
+# secfixes:
+#   1.24.1-r0:
+#     - CVE-2025-11411
+#   1.23.1-r0:
+#     - CVE-2025-5994
+#   1.21.1-r0:
+#     - CVE-2024-8508
+#   1.20.0-r0:
+#     - CVE-2024-33655
+#   1.19.2-r0:
+#     - CVE-2024-1931
+#   1.19.1-r0:
+#     - CVE-2023-50387
+#     - CVE-2023-50868
+#   1.16.3-r0:
+#     - CVE-2022-3204
+#   1.16.2-r0:
+#     - CVE-2022-30698
+#     - CVE-2022-30699
+#   1.10.1-r0:
+#     - CVE-2020-12662
+#     - CVE-2020-12663
+#   1.9.5-r0:
+#     - CVE-2019-18934
+#   1.9.4-r0:
+#     - CVE-2019-16866
+
+prepare() {
+    default_prepare
+    # We patched the configure.ac file, we need to regenerate the configure and header template
+    autoheader
+    autoconf
+}
+
+build() {
+	CFLAGS="$CFLAGS -Qunused-arguments" \
+    CPPFLAGS="$CPPFLAGS -Qunused-arguments" \
+	CC=clang \
+    PYTHON_VERSION=3 \
+    ./configure \
+        --build="$CBUILD" \
+		--host="$CHOST" \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--enable-pie \
+		--enable-relro-now \
+		--with-username=unbound \
+		--with-run-dir="" \
+		--with-pidfile="" \
+		--with-rootkey-file=/usr/share/dnssec-root/trusted-key.key \
+		--with-libevent \
+		--with-pthreads \
+		--disable-static \
+		--disable-rpath \
+		--disable-dsa \
+		--disable-gost \
+		--enable-dnstap \
+		--enable-subnet \
+		--enable-cachedb \
+		--with-ssl \
+		--without-pythonmodule \
+		--with-pyunbound \
+		--with-libhiredis \
+		--with-libnghttp2
+
+
+	# do not link to libpython
+    sed -i -e '/^LIBS=/s/-lpython.*[[:space:]]/ /' Makefile
+
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	make DESTDIR="$pkgdir" unbound-event-install
+
+	install -Dm755 contrib/update-anchor.sh \
+		"$pkgdir"/usr/share/$pkgname/update-anchor.sh
+
+	install -D -m644 doc/CREDITS doc/Changelog doc/FEATURES \
+		doc/README doc/TODO -t "$pkgdir"/usr/share/doc/$pkgname/
+
+	cd "$pkgdir"
+
+	install -d -m755 "$pkgdir"/etc/unbound/unbound.conf.d
+}
+
+py() {
+	pkgdesc="Python bindings to libunbound"
+	depends=""
+	provides="py-unbound=$pkgver-r$pkgrel" # backward compatibility (Alpine <3.23)
+
+	amove usr/lib/python*
+}
+
+
+sha512sums="
+655d63ec5305323e84d82691425d74d98c332d0028517bd729d191e5f968ce9481b49ec7447d4c4906dce7997a998a115db36e911a59d2d877da5840c2080261  unbound-1.24.2.tar.gz
+35f6acade9194f15b47e15ecd9b9acf7918e9bfb4bd56312cf7bcab98e6b4b98aa9c6114e6b3880dce890349d60a42aa3823938e3b60c6bcf72cc531d29181c3  qnx-build.patch
+529ea92eb2d743bb250034ff0cf3389d8de82b4770cb7dfe4b71ae3bb631073c142393e7833ac96f782295418022c8f334772cda39dd339706fab7a175ae7374  qnx-endian.patch
+eae1aa98a016c00eecc5ac23bd74bf25bd0ba6b33e45499fc14961c1bf0bfa1b080a8f770f41abf0a86bf55532518246e0068f34e3c2ac234c63d42486d82e70  swig-4.4.patch
+"
