@@ -1,0 +1,16 @@
+diff --git a/src/libssh2_setup.h b/src/libssh2_setup.h
+index 0f17a188..097bfc06 100644
+--- a/src/libssh2_setup.h
++++ b/src/libssh2_setup.h
+@@ -9,6 +9,10 @@
+ /* Header for platform/compiler-specific initialization.
+    Used by 'src', 'example', 'tests' */
+ 
++#ifdef __QNX__
++#include <sys/time.h>
++#endif
++
+ /* Define mingw-w64 version macros, eg __MINGW{32,64}_{MINOR,MAJOR}_VERSION */
+ #ifdef __MINGW32__
+ #include <_mingw.h>
+
