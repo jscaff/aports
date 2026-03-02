@@ -6,7 +6,7 @@ _pkgname=psutil
 _pkgver=7.2.2
 pkgver="$_pkgver"_alpha
 pkgrel=0
-_portrel=0
+_portrel=1
 pkgdesc="A cross-platform process and system utilities module for Python"
 url="https://github.com/qnx-ports/psutil"
 arch="all"
@@ -39,5 +39,5 @@ package() {
 
 
 sha512sums="
-ab5fde7fae46edfcb735d3852e7c44b2f517c584059ccdbfdb25ae0e1838587acade06c7fd05b9723212b9fd300d9fd98dd102888b9b3934e4894e0935f7877a  qnx-release-7.2.2-r0.tar.gz
+22b1adb01c73f529af15482e3d73f23670705ac8d974322a40c9d3628d102aecb4c5cd3e96c91e3c85474232396e8f3f432980ee74d61bba84080e2a4a4c9c07  qnx-release-7.2.2-r1.tar.gz
 "
