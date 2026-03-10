@@ -4,7 +4,7 @@
 # Maintainer: J. Scaffidi <jscaffidi@qnx.com>
 pkgname=chrony
 pkgver=4.8
-pkgrel=1
+pkgrel=2
 pkgdesc="Advanced NTP client and server"
 url="https://gitlab.com/chrony/chrony/"
 arch="all"
@@ -12,6 +12,7 @@ license="GPL-2.0-or-later"
 pkgusers="$pkgname"
 pkggroups="$pkgname"
 tag="$pkgver"
+install="$pkgname.pre-install $pkgname.pre-upgrade $pkgname.post-install"
 builddir="$srcdir"/$pkgname
 #TODO add docs subpkg when we get an asciidoctor port
 subpackages="$pkgname-openrc $pkgname-dbg"
