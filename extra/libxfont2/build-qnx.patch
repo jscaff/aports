@@ -1,0 +1,16 @@
+diff --git a/src/fc/fslibos.h b/src/fc/fslibos.h
+index d42c5dc..235c8ab 100644
+--- a/src/fc/fslibos.h
++++ b/src/fc/fslibos.h
+@@ -64,6 +64,9 @@ from The Open Group.
+ #    define OPEN_MAX 256
+ #   else
+ #    include <sys/param.h>
++#    ifdef __QNX__
++#      include <unix.h>
++#    endif
+ #    ifndef OPEN_MAX
+ #     ifdef NOFILE
+ #      define OPEN_MAX NOFILE
+
+
