@@ -1,0 +1,38 @@
+#Maintainer jscaffidi <jscaffidi@qnx.com>
+pkgname=python3-colcon-core
+_pkgname=colcon-core
+pkgver=0.20.1
+pkgrel=0
+pkgdesc="Command line tool to build sets of software packages"
+arch="noarch"
+license="Apache"
+makedepends="python3-packaging python3-gpep517 python3-distlib python3-empy python3-setuptools"
+checkdepends="python3-pytest"
+source="$_pkgname-$pkgver.tar.gz::https://github.com/colcon/colcon-core/archive/refs/tags/$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+url="http://colcon.readthedocs.io"
+options="!check" # tests failing due to missing dependencies + some warning we are not triggering
+
+prepare() {
+    default_prepare
+}
+
+build() {
+    gpep517 build-wheel \
+        --wheel-dir .dist \
+        --output-fd 3 3>&1 >&2
+
+}
+
+package(){
+    python3 setup.py install --force --root="$pkgdir" --no-compile -O0 
+}
+
+
+check() {
+    python -m pytest
+}
+
+sha512sums="
+1572cc655f4ebfc86adbce710ace3a1dd93a220569220cf1a7db20eb6dcd100147373788af662ef2adcb09f3c9430e9e1cd0420160cd840fbdff5d4df44a864e  colcon-core-0.20.1.tar.gz
+"
