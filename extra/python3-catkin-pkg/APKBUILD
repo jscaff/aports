@@ -15,9 +15,6 @@ checkdepends="python3-pytest"
 source="https://github.com/ros-infrastructure/catkin_pkg/archive/refs/tags/$pkgver/catkin-pkg-$pkgver.tar.gz"
 builddir="$srcdir/$_pkgname-$pkgver"
 
-replaces="python3-catkin-pkg-modules" # module was renamed in pypi
-provides="python3-catkin-pkg-modules=$pkgver-r$pkgrel"
-
 prepare() {
 	default_prepare
 	# skip lint checks
