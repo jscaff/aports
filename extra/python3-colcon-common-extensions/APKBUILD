@@ -5,7 +5,7 @@ pkgrel=0
 pkgdesc=" Meta package aggregating colcon-core and common extensions "
 url="https://github.com/colcon/colcon-common-extensions"
 arch="noarch"
-license="Apache 2"
+license="Apache-2.0"
 builddir="$srcdir/colcon-common-extensions"
 depends="python3 python3-empy python3-distlib python3-setuptools python3-packaging python3-tomli"
 
