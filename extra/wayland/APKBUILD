@@ -44,12 +44,17 @@ source="https://gitlab.freedesktop.org/wayland/wayland/-/archive/$pkgver/wayland
 0002-fix-non-supported-tests.patch
 "
 
+options="!strip"
+
 build() {
     CXX="clang++" \
+    CXXFLAGS="$CXXFLAGS -Qunused-arguments" \
+    CFLAGS="$CFLAGS -Qunused-arguments" \
     meson \
         setup build \
         -Dprefix=/usr \
-	-Dc_link_args=-Wl,-lepoll,-leventfd,-ltimerfd,-lsignalfd,-lmemstream,-lsocket,-lslog2 \
+        --buildtype=debug \
+        -Dc_link_args=-Wl,-lepoll,-leventfd,-ltimerfd,-lsignalfd,-lmemstream,-lsocket,-lslog2 \
         -Ddocumentation=false
 
     ninja -C build

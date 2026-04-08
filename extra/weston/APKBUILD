@@ -3,8 +3,8 @@
 # Maintainer: Aaron Bassett <abassett@qnx.com>
 pkgname=weston
 pkgver=14.0.2
-pkgrel=5
-_commit="62583e37ec88cac57c9f70f285c9400b4c354258"
+pkgrel=6
+_commit="3faa6c3ec4ec151c39406835d15174f9759f8818"
 _libname=lib$pkgname
 _libdir=$_libname-${pkgver%%.*}
 pkgdesc="Reference Wayland server"
@@ -12,13 +12,17 @@ url="https://wayland.freedesktop.org/"
 arch="all"
 license="MIT"
 depends_dev="$pkgname=$pkgver-r$pkgrel"
-depends="$_libname dbus libdisplay-info libjpeg-turbo libwebp libxkbcommon qnx-security pango wayland qnx-io-sock qnx-egl qnx-screen qnx-gles qnx-memstream qnx-fd-notify qnx-libdrm ncurses"
+depends="$_libname dbus libdisplay-info libjpeg-turbo libwebp libxkbcommon qnx-security pango wayland qnx-io-sock qnx-egl qnx-screen qnx-gles qnx-memstream qnx-fd-notify qnx-libdrm ncurses qnx-libgbm"
+options="!strip !check"
 makedepends="
 	dbus-dev
 	libdisplay-info-dev
 	libjpeg-turbo-dev
 	libwebp-dev
 	libxkbcommon-dev
+    libxcursor-dev
+    libxfixes-dev
+    libxrender-dev
 	qnx-security-dev
 	meson
 	pango-dev
@@ -33,8 +37,10 @@ makedepends="
 	gles-headers
 	qnx-memstream-dev
 	qnx-fd-notify-dev
-	qnx-libdrm-dev
-	ncurses-dev
+    qnx-libdrm-dev
+    qnx-libgbm-dev
+    ncurses-dev
+    xwayland-dev
 	"
 _shell="shell-qnx-desktop shell-desktop shell-fullscreen shell-ivi"
 _client="terminal wcap-decode"
@@ -51,17 +57,19 @@ subpackages="
 	$pkgname-doc
 	$subpackages
 	$pkgname-clients
+	$pkgname-xwayland
 	$_libname:libs
 	"
-source="https://github.com/qnx/weston/archive/$_commit.tar.gz
+source="https://github.com/qnx-ports/weston/archive/$_commit.tar.gz
+99-debug.patch
 	input.h
 	pty.h
 	qnx-fix.patch
 	xfce4-panel.patch
 	0002-qnx-taskbar.patch
 	0003-qnx-xfce-weston-shell.patch
+    0004-os-compatibility.patch
 	"
-options="!check"
 builddir="$srcdir/weston-$_commit"
 #install="$pkgname.pre-install"
 
@@ -85,8 +93,9 @@ prepare() {
 
 build() {
 	abuild-meson \
-		-Dc_args="-I/usr/include/libdrm -D_QNX_SOURCE -Wno-int-conversion" \
-		-Dc_link_args="-Wl,-lepoll,-leventfd,-ltimerfd,-lsignalfd,-lmemstream,-lsocket,-lgcc_s,-lm" \
+		-Dc_args="-I/usr/include/libdrm -D_QNX_SOURCE -Wno-int-conversion -g3" \
+		-Dc_link_args="-Wl,-lepoll,-leventfd,-ltimerfd,-lsignalfd,-lmemstream,-lsocket,-lgcc_s,-lm,-lgbm" \
+        --buildtype=debug \
 		-Dbackend-drm=false \
 		-Dbackend-vnc=false \
 		-Dbackend-x11=false \
@@ -98,7 +107,7 @@ build() {
 		-Dcolor-management-lcms=false \
 		-Drenderer-gl=true \
 		-Dbackend-rdp=false \
-		-Dxwayland=false \
+		-Dxwayland=true \
 		-Dsystemd=false \
 		-Dremoting=false \
 		-Dpipewire=false \
@@ -132,12 +141,12 @@ clients() {
 	mv "$pkgdir"/usr/bin/$pkgname-* "$subpkgdir"/usr/bin
 }
 
-#xwayland() {
-#	pkgdesc="Wayland module to run X Clients"
-#	mkdir -p "$subpkgdir"/usr/lib/$_libdir
-#	mv "$pkgdir"/usr/lib/$_libdir/xwayland.so \
-#		"$subpkgdir"/usr/lib/$_libdir
-#}
+xwayland() {
+	pkgdesc="Wayland module to run X Clients"
+	mkdir -p "$subpkgdir"/usr/lib/$_libdir
+	mv "$pkgdir"/usr/lib/$_libdir/xwayland.so \
+		"$subpkgdir"/usr/lib/$_libdir
+}
 
 _sub() {
 	local name path
@@ -165,13 +174,14 @@ _sub() {
 	amove $path/$name
 }
 
-
 sha512sums="
-b20a7551d254295ace8a0e3c940677c476d1b8a41dda77823446d6bd766bf2143963f0a595949f8aa71f17a147f5bf4779e0b41310b77dcdd77c2733377de549  62583e37ec88cac57c9f70f285c9400b4c354258.tar.gz
+c70a526fb0b0a9c241911e68b6cdab1cf6c35903b2a99389ca53ae945d74db9316bb96f4486749afd49dcb9c9587635c9131bffb9e3962b477928944cc71b91f  3faa6c3ec4ec151c39406835d15174f9759f8818.tar.gz
+1af0ba03c007e115a8d68c85f39fe5660fe0e0e30620cc05e523ac9569eea8d7fbfcb86d336ed5ada1bb81ed23aec2b38cced0d40ed8b014578afbf922189ddf  99-debug.patch
 f8da44d844cee2b21610f7bb83222910ecb7fad5620d461f88b264d52b0308ffe78b930c414c58766ce0fa440c4edae8156a7848237b50e6e4bbf0ddd0ed5767  input.h
 df637c58711e02d865c31ccd719a435253f7eb34718b19a64a8b057cb82b40eae0ed52d0a49d0db251eeecd6197238280bd05c475883170af5e283c13f12f201  pty.h
 b5e0ae28719d0a88f3ec60c10141e3d3ee0371d584d81f261f7d7a37646bd135b4017618497445db2d52a81109c25734d6edacd2eed5b9f6f52e19f033c64b2b  qnx-fix.patch
 add868b314b3781e4d10f32d25f83b3b6e52f0a6b5fbca23b1bf1880d038d72c5b2b2deb7b3206de8b22ec3ac396d6568c7690a6ca4e0a2276f7691ae7bbeec6  xfce4-panel.patch
 b2af5e75fc6885f2f09ecc3ff0fb7b444ae9b36c374d9993087c97a122452bdf324351401ee5202ea2ae0ae61ac10bae40e7d88dda3d1ad8eaed8c4f5f35bdf1  0002-qnx-taskbar.patch
-f6054f4cbc43f4fa0c1e77c2bec5ee8f9b91d5e697095d202f54942ce7bfb5b422eff62cdeff10050a2e815c1c85d3d66c2575a827a2beacb48ce11be7733f27  0003-qnx-xfce-weston-shell.patch
+2dc716efbf7dedd40b143753be277d37b1dfd9c4e80b6bab48ca297e9ccd9a70b76ad0018afc489dab1e9d6c3079a65fcca345dd4ee57838064815dfb2077a55  0003-qnx-xfce-weston-shell.patch
+1563beb174f00f0a1d9a05068c620d75a241ef0bc09f7b2c7043e7646922855ebfc7cffe3f68353cfe9edf08450197fc0aa8f719207844772467710ce6bb9ee3  0004-os-compatibility.patch
 "

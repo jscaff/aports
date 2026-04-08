@@ -1,6 +1,6 @@
 pkgname=cairo
 pkgver=1.18.4
-pkgrel=0
+pkgrel=1
 pkgdesc="A vector graphics library"
 url="https://cairographics.org/"
 arch="all"
@@ -21,6 +21,8 @@ makedepends="
     glib-dev
     libpng-dev
     zlib-ng-dev
+    xcb-util-dev
+    libsysv-ipc-shim-dev
     "
 depends="
         fontconfig
@@ -28,6 +30,7 @@ depends="
         pixman
         glib
 	zlib-ng
+    libsysv-ipc-shim
         "
 
 subpackages="
@@ -39,18 +42,19 @@ source="https://gitlab.freedesktop.org/cairo/cairo/-/archive/$pkgver/cairo-$pkgv
 
 build() {
     meson setup build \
-        -Db_lto=true \
         -Dc_args=-DHAVE_CTIME_R \
-        -Dc_link_args=-Wl,-lm \
+        --buildtype=custom \
+        -Doptimization="0" \
+        -Dc_link_args=-Wl,-lm,-lsysv-ipc \
         -Dtests=disabled \
         -Dzlib=enabled \
         -Dfontconfig=enabled \
         -Dfreetype=enabled \
         -Dglib=enabled \
         -Dpng=enabled \
+        -Dxcb=enabled \
         -Ddefault_library=both \
         --reconfigure \
-        --buildtype=release \
         --prefix=/usr
                 
 
