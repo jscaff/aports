@@ -14,7 +14,7 @@ subpackages="
     $pkgname-static         
     $pkgname-dev            
 " 
-makedepends="ncurses-dev zlib-dev meson bison flex"
+makedepends="meson bison flex"
 builddir="$srcdir/util-linux-$pkgver"
 options="!check"
 
