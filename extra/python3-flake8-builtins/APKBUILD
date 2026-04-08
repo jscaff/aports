@@ -14,9 +14,6 @@ makedepends="python3-hatchling python3-gpep517"
 source="https://files.pythonhosted.org/packages/source/f/flake8-builtins/flake8_builtins-$pkgver.tar.gz"
 builddir="$srcdir"/flake8_builtins-$pkgver
 
-replaces="py-flake8-builtins"                  # Backwards compatibility
-provides="py-flake8-builtins=$pkgver-r$pkgrel" # Backwards compatibility
-
 build() {
 	gpep517 build-wheel \
 		--wheel-dir .dist \
