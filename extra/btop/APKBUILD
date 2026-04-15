@@ -1,0 +1,33 @@
+# Alpine-Contributor: Michał Polański <michal@polanski.me>
+# Alpine-Maintainer: Michał Polański <michal@polanski.me>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=btop
+# Release candidate since our port was built against main, which is breaking from the latest release
+pkgver=1.4.7_rc1
+_pkgver=1.4.7
+pkgrel=1
+pkgdesc="Resource monitor"
+url="https://github.com/aristocratos/btop"
+license="Apache-2.0"
+arch="all"
+depends="libc++"
+makedepends="qnx-io-sock-dev libc++-dev"
+source="https://github.com/qnx-ports/btop/archive/qnx-$_pkgver-rc$pkgrel/btop-$_pkgver-rc$pkgrel.tar.gz"
+builddir="$srcdir"/$pkgname-qnx-$_pkgver-rc$pkgrel
+options="!check" # no test suite
+
+build() {
+	make 
+}
+
+package() {
+	make install DESTDIR="$pkgdir" PREFIX=/usr
+
+	rm -rf "$pkgdir"/usr/share/doc/
+}
+
+
+
+sha512sums="
+1321167df5a885a772cc3dff245d7e643e46415f82eed04d3a6d585b4bd1f49ec8f13d6ced19b6e383f7c9d818cb94e0a5a08f8b9f8d139ac8e0c9422c6ca736  btop-1.4.7-rc1.tar.gz
+"
