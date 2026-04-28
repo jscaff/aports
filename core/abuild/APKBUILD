@@ -1,7 +1,7 @@
 # Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=abuild
-pkgver=3.15.0
-pkgrel=11
+pkgver=3.16.0
+pkgrel=0
 pkgdesc="APK build toolchain, adapted for QNX"
 url="https://gitlab.alpinelinux.org/alpine/abuild/"
 arch="all"
@@ -13,7 +13,7 @@ subpackages="$pkgname-doc"
 source="https://gitlab.alpinelinux.org/alpine/abuild/-/archive/$pkgver/abuild-$pkgver.tar.gz
     0001-qnx-remove-features-not-used-by-QNX.patch
     0002-qnx-add-BUILDINFO.patch
-    0003-qnx-libc-hardening-mode.patch
+    0003-qnx-misc-fixes.patch
 "
 builddir="$srcdir"/abuild-$pkgver
 
@@ -24,9 +24,10 @@ build() {
 package() {
     make install VERSION="$pkgver-r$pkgrel" DESTDIR="$pkgdir"
 }
+
 sha512sums="
-b0d33e117a96692173b99145f7c14b5826639e3d5627219871b054a3fca6d39790d324058df4880fe21bf5bdc856d35540810ff161683c30bafe6f6d296a9559  abuild-3.15.0.tar.gz
-70df9252057f6f42e4de99e9e557d6c71d827b0367d164bc1bcad1363764a3bd7101844145853c00951a69d29608047007691c7ebc09c0f9ec2b7e3a180daf41  0001-qnx-remove-features-not-used-by-QNX.patch
-ec53e73cece55c9b0f7daf02ad4dbce53bba48c42a20fabe2ee0b193560fc63e465e4a7a3f29f7bacde939655cfcb626dbd91cb411643c7df41edb2506df285e  0002-qnx-add-BUILDINFO.patch
-5bfc15c60da1d5bd3acfa9f13eaa16c5c1105823acc6e4327676ab8383fb3bb2226840b5bee00f99b6b80c7d2eacd773700b0315e0a07aeddd186b0ea47f258a  0003-qnx-libc-hardening-mode.patch
+1a889ac88715ef988d3970163122d603329c5b02e85b0329b497c1b940a2dc25d852f25320af79415d6b2050184d9ff14ccfcc14f286d3b2dabad19634861026  abuild-3.16.0.tar.gz
+1d28baf6a3905b1d5fa47cf062225d34412791df6d71e04f512077229221b2840ac1da12898adc679ecc56a371b1e56960311c9f5262490723bdc804190533a5  0001-qnx-remove-features-not-used-by-QNX.patch
+bf72ce1d71c18c08c3712bcb5dd03c99994da27804d32c15e072ce2ddc9454af415ad5bb959ffe61c4b7dc0286a8d183df9c59650ca97b182276db4bbdab4122  0002-qnx-add-BUILDINFO.patch
+d669a9404f261f5d0ca4a37786bf4ad7dbad8715ce3b8f0392a3b2455be27285a20a95659a5d420c6533b11c6458c989062d15e4d2c32db61d9baac595e5d525  0003-qnx-misc-fixes.patch
 "

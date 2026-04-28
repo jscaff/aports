@@ -1,19 +1,21 @@
-From edbf8d57865e94744cb318e1284c5e01f6d6cd63 Mon Sep 17 00:00:00 2001
+From 81ab6ed082b082f09dd195ff46bfa145cb3eddfe Mon Sep 17 00:00:00 2001
 From: Leo Shen <i@szclsya.me>
-Date: Thu, 30 Oct 2025 14:48:17 +0000
-Subject: [PATCH 1/2] qnx: remove features not used by QNX
+Date: Tue, 21 Apr 2026 17:00:42 -0400
+Subject: [PATCH 1/3] qnx: remove features not used by QNX
 
 - /usr merge, no longer using /bin, /sbin, /lib, /usr/sbin and /usr/libexec
+  - also applies to openrc
 - add qnx target triplets
 - remove -pyc auto splitting
 - remove auto so dependency, only prompt a warning
 - remove capability detections
 - remove nftables auto splitting
+- remove multi-libc support
 ---
- abuild-sudo.c   |  10 ++--
- abuild.in       | 156 +++++++++++++++++++-----------------------------
- functions.sh.in |  44 +-------------
- 3 files changed, 67 insertions(+), 143 deletions(-)
+ abuild-sudo.c   |  10 +--
+ abuild.in       | 209 +++++++++++++++++++++++++-----------------------
+ functions.sh.in |  62 +-------------
+ 3 files changed, 118 insertions(+), 163 deletions(-)
 
 diff --git a/abuild-sudo.c b/abuild-sudo.c
 index df3a380..ec55d3e 100644
@@ -37,7 +39,7 @@ index df3a380..ec55d3e 100644
  	NULL
  };
 diff --git a/abuild.in b/abuild.in
-index c33a230..2f13c5d 100644
+index 1dfcb1f..c09c84e 100644
 --- a/abuild.in
 +++ b/abuild.in
 @@ -1,4 +1,4 @@
@@ -46,16 +48,33 @@ index c33a230..2f13c5d 100644
  # vim: set filetype=sh:
  
  # abuild - build apk packages (light version of makepkg)
-@@ -600,7 +600,7 @@ subpkg_set() {
+@@ -491,12 +491,12 @@ initdcheck() {
+ 		esac
+ 
+ 		case "$line" in
+-		*sbin/openrc-run)
++		*usr/bin/openrc-run)
+ 			;;
+-		*sbin/runscript)
+-			warning "$i is not an openrc #!/sbin/openrc-run"
++		*usr/bin/runscript)
++			warning "$i is not an openrc #!/usr/bin/openrc-run"
+ 			;;
+-		*)	error "$i is not an openrc #!/sbin/openrc-run"
++		*)	error "$i is not an openrc #!/usr/bin/openrc-run"
+ 			return 1
+ 			;;
+ 		esac
+@@ -594,7 +594,7 @@ subpkg_set() {
  	subpkgarch=${_splitarch#*:}
  	if [ "$subpkgarch" = "$_splitarch" -o -z "$subpkgarch" ]; then
  		case "$subpkgname" in
--		*-doc | *-openrc | *-lang | *sh-completion | *-pyc) subpkgarch="noarch" ;;
+-		*-doc | *-openrc | *-lang | *sh-completion | *-pyc | *-nftrules | *-systemd | *-udev) subpkgarch="noarch" ;;
 +		*-doc | *-openrc | *-lang | *sh-completion) subpkgarch="noarch" ;;
  		*) subpkgarch="$pkgarch" ;;
  		esac
  	elif [ "$subpkgarch" = "all" ]; then
-@@ -813,7 +813,7 @@ postcheck() {
+@@ -804,7 +804,7 @@ postcheck() {
  
  	# /usr merge
  	if ! options_has "!usrmerge"; then
@@ -64,7 +83,7 @@ index c33a230..2f13c5d 100644
  			if [ -L "$dir"/$i ] || [ -e "$dir"/$i ]; then
  				warning "Packages must not put anything under /$i, use /usr/${i##*s} instead"
  			fi
-@@ -825,12 +825,6 @@ postcheck() {
+@@ -816,12 +816,6 @@ postcheck() {
  		find "$dir" -name '*.la' -type f -delete
  	fi
  
@@ -77,7 +96,7 @@ index c33a230..2f13c5d 100644
  	# look for /etc/init.d and /etc/conf.d
  	if [ -e "$dir"/etc/init.d -o -e "$dir"/etc/conf.d ] \
  			&& ! is_openrc_pkg "$name"; then
-@@ -859,13 +853,6 @@ postcheck() {
+@@ -860,13 +854,6 @@ postcheck() {
  			e=1
  		fi
  	fi
@@ -91,7 +110,7 @@ index c33a230..2f13c5d 100644
  
  	# check that we don't have any files names with newline
  	i=$(find "$dir" -name $'*\n*')
-@@ -898,20 +885,6 @@ postcheck() {
+@@ -899,20 +886,6 @@ postcheck() {
  			e=1
  		fi
  	fi
@@ -112,7 +131,7 @@ index c33a230..2f13c5d 100644
  
  	# test for textrels
  	if ! options_has "textrels"; then
-@@ -1455,7 +1428,7 @@ real_so_path() {
+@@ -1467,7 +1440,7 @@ real_so_path() {
  		[ -e "$1"/$so ] && realpath "$1/$so" && return 0
  		shift
  	done
@@ -121,12 +140,11 @@ index c33a230..2f13c5d 100644
  	return 1
  }
  
-@@ -1472,22 +1445,51 @@ find_so_files() {
+@@ -1483,13 +1456,52 @@ find_so_files() {
+ 	return 0
  }
  
- subpkg_provides_prefixed_so() {
--	[ -n "$sonameprefix" ] && grep -q -w "^$sonameprefix$1" \
--		"$pkgbasedir"/.control.*/.provides-so 2>/dev/null
++subpkg_provides_prefixed_so() {
 +	if [ -n "$sonameprefix" ] && grep -q -w "^$sonameprefix$1" \
 +		"$pkgbasedir"/.control.*/.provides-so 2>/dev/null; then
 +		grep -l -H -w "^$sonameprefix$1" \
@@ -137,10 +155,10 @@ index c33a230..2f13c5d 100644
 +	else
 +		return 1
 +	fi
- }
- 
++}
++
  subpkg_provides_so() {
--	grep -q -w "^$1" "$pkgbasedir"/.control.*/.provides-so 2>/dev/null
+-	grep -q -w "^so:$1" "$pkgbasedir"/.control.*/.provides-so 2>/dev/null
 +	if grep -q -w "^$1" "$pkgbasedir"/.control.*/.provides-so 2>/dev/null; then
 +		grep -l -H -w "^$1" "$pkgbasedir"/.control.*/.provides-so 2>/dev/null |
 +			sed -e "s:^$pkgbasedir/\.control\.::" -e "s:/\.provides-so::" |
@@ -149,11 +167,9 @@ index c33a230..2f13c5d 100644
 +	else
 +		return 1
 +	fi
- }
- 
- subpkg_provides_prefixed_pc() {
--	[ -n "$pcprefix" ] && grep -q -w "^$pcprefix$1" \
--		"$pkgbasedir"/.control.*/.provides-pc 2>/dev/null
++}
++
++subpkg_provides_prefixed_pc() {
 +	if [ -n "$pcprefix" ] && grep -q -w "^$pcprefix$1" \
 +		"$pkgbasedir"/.control.*/.provides-pc 2>/dev/null; then
 +		grep -l -H -w "^$pcprefix$1" "$pkgbasedir"/.control.*/.provides-pc 2>/dev/null |
@@ -166,7 +182,7 @@ index c33a230..2f13c5d 100644
  }
  
  subpkg_provides_pc() {
--	grep -q -w "^${1%%[<>=]*}" "$pkgbasedir"/.control.*/.provides-pc \
+-	grep -q -w "^pc:${1%%[<>=]*}" "$pkgbasedir"/.control.*/.provides-pc \
 -		2>/dev/null
 +	if grep -q -w "^${1%%[<>=]*}" "$pkgbasedir"/.control.*/.provides-pc \
 +			2>/dev/null; then
@@ -180,15 +196,19 @@ index c33a230..2f13c5d 100644
  }
  
  trace_apk_deps() {
-@@ -1512,11 +1514,10 @@ trace_apk_deps() {
- 		# first check if its provided by same apkbuild
- 		grep -q -w "^$sonameprefix$i" "$dir"/.provides-so 2>/dev/null && continue
+@@ -1510,11 +1522,14 @@ trace_apk_deps() {
+ 		autodeps="$autodeps pkgconfig"
+ 	fi
  
--		if subpkg_provides_prefixed_so "$i"; then
+-	for i in $(cat "$dir"/.needs-so 2>/dev/null); do
+-		if subpkg_provides_so "$sonameprefix$i"; then
 -			autodeps="$autodeps so:$sonameprefix$i"
--		elif subpkg_provides_so "$i" \
--				|| $APK $apkroot info --quiet -e "so:$i"; then
+-		elif $APK $apkroot info --quiet -e "so:$i"; then
 -			autodeps="$autodeps so:$i"
++	[ -f "$dir"/.needs-so ] && for i in $(cat "$dir"/.needs-so); do
++		# first check if its provided by same apkbuild
++		grep -q -w "^$sonameprefix$i" "$dir"/.provides-so 2>/dev/null && continue
++
 +		if subpkg_provides_prefixed_so "$i">/dev/null; then
 +			warning "subpkg so dependency missing: $i in $(subpkg_provides_prefixed_so $i)"
 +		elif subpkg_provides_so "$i">/dev/null; then
@@ -196,46 +216,68 @@ index c33a230..2f13c5d 100644
  		else
  			missing="$missing $i"
  		fi
-@@ -1525,19 +1526,19 @@ trace_apk_deps() {
+@@ -1522,43 +1537,66 @@ trace_apk_deps() {
+ 
  	# find all packages that holds the so files
  	if [ -f "$dir"/.rpaths ]; then
- 		local so_files
--		so_files=$(find_so_files "$dir"/.rpaths $missing) \
--			|| return 1
+-		local so_files deppkgs
+-		so_files=$(find_so_files "$dir"/.rpaths $missing)
+-		deppkgs=$($APK $apkroot info --quiet --who-owns $so_files)
+-		for found in $deppkgs; do
+-			if grep -q -x -F "depend = $found" "$dir"/.PKGINFO; then
+-				warning "You can remove '$found' from depends"
+-				continue
+-			fi
+-			autodeps="$autodeps $found"
+-		done
++		local so_files
 +		if ! so_files=$(find_so_files "$dir"/.rpaths $missing); then
 +			error "some so dependency is missing from the dependency list"
 +			return 1
 +		fi
- 		if [ -n "$so_files" ]; then
- 			deppkgs=$($APK $apkroot info --quiet --who-owns $so_files) || return 1
- 		fi
++		if [ -n "$so_files" ]; then
++			deppkgs=$($APK $apkroot info --quiet --who-owns $so_files) || return 1
++		fi
  	fi
  
- 	for found in $deppkgs; do
--		if grep -w "^depend = ${found}$" "$dir"/.PKGINFO >/dev/null ; then
--			warning "You can remove '$found' from depends"
--			continue
++	for found in $deppkgs; do
 +		if ! grep -w "^depend = ${found}$" "$dir"/.PKGINFO >/dev/null ; then
 +			warning "so dependency missing: $found"
- 		fi
--		autodeps="$autodeps $found"
- 	done
- 
- 	# symlink targets
-@@ -1562,35 +1563,24 @@ trace_apk_deps() {
- 		# first check if its provided by same apkbuild
- 		grep -q -w "^$pcprefix$i" "$dir"/.provides-pc 2>/dev/null && continue
- 
--		if subpkg_provides_prefixed_pc "$i"; then
++		fi
++	done
++
++	# symlink targets
++	for i in $(sort -u "$dir"/.symlinks-needs 2>/dev/null); do
++		autodeps="$autodeps $i"
++	done
++
++	# python3 dependencies
++	for i in $(sort -u "$dir"/.python3-needs 2>/dev/null); do
++		autodeps="$autodeps $i"
++	done
++
++	# debuginfo conflict dependencies
++	local ver=$pkgver-r$pkgrel
++	for i in $(sort -u "$dir"/.debug-target-pkgs 2>/dev/null); do
++		autodeps="$autodeps !$i<$ver !$i>$ver"
++	done
++
+ 	# pkg-config depends
+ 	local provider
+ 	for i in $(sort -u "$dir"/.needs-pc 2>/dev/null); do
+-		if subpkg_provides_pc "$pcprefix$i"; then
++		# first check if its provided by same apkbuild
++		grep -q -w "^$pcprefix$i" "$dir"/.provides-pc 2>/dev/null && continue
++
 +		if subpkg_provides_prefixed_pc "$i" >/dev/null; then
  			autodeps="$autodeps pc:$pcprefix$i"
--		elif subpkg_provides_pc "$i" \
--				|| $APK $apkroot info --quiet -e "pc:$i"; then
-+			warning "subpkg pkg-config depdency missing: $i in $(subpkg_provides_prefixed_pc $i)"
-+		elif subpkg_provides_pc "$i"; then
- 			provider=$($APK $apkroot search --quiet --exact "pc:$i")
+-		elif $APK $apkroot info --quiet -e "pc:$i"; then
+-			provider=$($APK $apkroot search --from installed --quiet --exact "pc:${i%%[<>=~]*}")
 -			if list_has "$provider" $depends_dev; then
 -				warning "$provider should be removed from depends_dev"
++			warning "subpkg pkg-config depdency missing: $i in $(subpkg_provides_prefixed_pc $i)"
++		elif subpkg_provides_pc "$i"; then
++			provider=$($APK $apkroot search --quiet --exact "pc:$i")
 +			if ! list_has "$provider" $depends_dev; then
 +				warning "subpkg pkg-config dependency missing: $i in $(subpkg_provides_pc $i)"
  			fi
@@ -247,32 +289,35 @@ index c33a230..2f13c5d 100644
  	done
  
  	echo "# automatically detected:" >> "$dir"/.PKGINFO
--	if [ -f "$dir"/.provides-so ]; then
--		sed 's/^\(.*\) \([0-9].*\)/provides = so:\1=\2/' \
--			"$dir"/.provides-so | sort -u \
--			>> "$dir"/.PKGINFO
--	fi
- 	if [ -f "$dir"/.provides-pc ]; then
- 		sed 's/^/provides = pc:/' "$dir"/.provides-pc | sort -u \
- 			>> "$dir"/.PKGINFO
- 	fi
--	if [ -f "$dir"/.provides-command ]; then
--		sed -e 's/^/provides = cmd:/' -e "s/\$/=$pkgver-r$pkgrel/" \
--			 "$dir"/.provides-command | sort -u \
--			>> "$dir"/.PKGINFO
--	fi
- 	if [ -f "$dir"/.provides-py ]; then
- 		sed 's/^/provides = /' "$dir"/.provides-py | sort -u \
- 			>> "$dir"/.PKGINFO
-@@ -2210,32 +2200,6 @@ fishcomp() {
+-
+-	touch "$dir"/.provides-dummy
+-	sed 's/^/provides = /' "$dir"/.provides-* | sort -u >> "$dir"/.PKGINFO
+-
+-	for i in "$dir"/.needs-symlinks "$dir"/.needs-python3 "$dir"/.needs-debug; do
+-		[ -f "$i" ] && cat "$i"
+-	done | sed 's/^/depend = /' | sort -u >> "$dir"/.PKGINFO
+-
++	if [ -f "$dir"/.provides-pc ]; then
++		sed 's/^/provides = pc:/' "$dir"/.provides-pc | sort -u \
++			>> "$dir"/.PKGINFO
++	fi
++	if [ -f "$dir"/.provides-py ]; then
++		sed 's/^/provides = /' "$dir"/.provides-py | sort -u \
++			>> "$dir"/.PKGINFO
++	fi
+ 	for i in $autodeps; do
+ 		echo "depend = $i"
+ 	done | sort -u >> "$dir"/.PKGINFO
+@@ -2183,32 +2221,6 @@ fishcomp() {
  	default_fishcomp
  }
  
 -default_pyc() {
+-	depends=
 -	pkgdesc="Precompiled Python bytecode for ${subpkgname%-pyc}"
 -	install_if="${subpkgname%-pyc}=$pkgver-r$pkgrel pyc"
 -
--	cd "$pkgdir" || return 0
+-	cd "$pkgdir"
 -	local IFS=$'\n'
 -	amove $(find usr/lib/python* -type d -name __pycache__)
 -}
@@ -282,12 +327,11 @@ index c33a230..2f13c5d 100644
 -}
 -
 -default_nftrules() {
+-	depends=
 -	pkgdesc="$pkgdesc (nftables ruleset)"
 -	install_if="nftables-rulesets ${subpkgname%-nftrules}=$pkgver-r$pkgrel"
 -
--	if [ -d "$pkgdir"/usr/share/nftables.avail ]; then
--		amove 'usr/share/nftables.avail/*.nft'
--	fi
+-	amove 'usr/share/nftables.avail/*.nft' || :
 -}
 -
 -nftrules() {
@@ -297,25 +341,28 @@ index c33a230..2f13c5d 100644
  is_function() {
  	type "$1" 2>&1 | head -n 1 | grep -E -q "is a (shell )?function"
  }
-@@ -2510,7 +2474,7 @@ rootbld_qemu_arch() {
+@@ -2488,8 +2500,7 @@ rootbld_qemu_arch() {
  	case "$CBUILD_ARCH" in
  	arm*) qarch="arm" ;;
  	x86)  qarch="i386" ;;
+-	loongarch*) qarch="loongarch" ;;
 -	*)    qarch="$CBUILD_ARCH" ;;
 +	*)	qarch="$CBUILD_ARCH" ;;
  	esac
  
  	echo "${qarch}"
-@@ -2935,7 +2899,7 @@ while getopts ":AcC:dD:fFhkKmnP:qrRs:uvV" opt; do
+@@ -2931,8 +2942,8 @@ while getopts ":AcC:dD:fFhkKmnP:qrs:vV" opt; do
  	case $opt in
  		'A') echo "$CARCH"; exit 0;;
  		'c') enable_colors
 -		     color_opt="-c";;
+-		'C') cd "$OPTARG";;
 +			 color_opt="-c";;
- 		'C') chdir "$OPTARG";;
++		'C') chdir "$OPTARG";;
  		'd') nodeps="-d";;
  		'D') DESCRIPTION=$OPTARG;;
-@@ -2945,7 +2909,7 @@ while getopts ":AcC:dD:fFhkKmnP:qrRs:uvV" opt; do
+ 		'f') force="-f";;
+@@ -2941,7 +2952,7 @@ while getopts ":AcC:dD:fFhkKmnP:qrs:vV" opt; do
  		'k') keep="-k";;
  		'K') keep_build="-K";;
  		'm') disable_colors
@@ -324,24 +371,16 @@ index c33a230..2f13c5d 100644
  		'n') die "Use newapkbuild to create new aports";;
  		'P') REPODEST=$OPTARG;;
  		'q') quiet="-q";;
-@@ -3009,7 +2973,7 @@ export REPODEST SRCDEST
- 
- # add dbg subpackage if its enabled globally
- if [ -n "$DEFAULT_DBG" ] && ! subpackage_types_has "dbg" && ! options_has "!dbg" && [ "$arch" != "noarch" ]; then
--        subpackages="$pkgname-dbg $subpackages"
-+		subpackages="$pkgname-dbg $subpackages"
- fi
- 
- # if we want build debug package
 diff --git a/functions.sh.in b/functions.sh.in
-index c0302a9..0da47ad 100644
+index 994494e..bad1f07 100644
 --- a/functions.sh.in
 +++ b/functions.sh.in
-@@ -6,28 +6,8 @@ program=${0##*/}
+@@ -6,29 +6,8 @@ program=${0##*/}
  
- arch_to_hostspec() {
+ arch_to_triplet() {
  	case "$1" in
 -	aarch64)	echo "aarch64-alpine-linux-musl" ;;
+-	aarch64_be)	echo "aarch64_be-alpine-linux-musl" ;;
 -	armel)		echo "armv5-alpine-linux-musleabi" ;;
 -	armhf)		echo "armv6-alpine-linux-musleabihf" ;;
 -	armv7)		echo "armv7-alpine-linux-musleabihf" ;;
@@ -368,10 +407,12 @@ index c0302a9..0da47ad 100644
  	*)		echo "unknown" ;;
  	esac
  }
-@@ -35,26 +15,6 @@ arch_to_hostspec() {
- hostspec_to_arch() {
+@@ -40,28 +19,7 @@ arch_to_hostspec() {
+ 
+ triplet_to_arch() {
  	case "$1" in
- 	aarch64*-*-*-*)		echo "aarch64" ;;
+-	aarch64-*-*-*)		echo "aarch64" ;;
+-	aarch64_be-*-*-*)	echo "aarch64_be" ;;
 -	arm*-*-*-*eabi)		echo "armel" ;;
 -	armv6*-*-*-*eabihf)	echo "armhf" ;;
 -	armv7*-*-*-*eabihf)	echo "armv7" ;;
@@ -392,9 +433,40 @@ index c0302a9..0da47ad 100644
 -	sh2eb-*-*-*)		echo "sh2eb" ;;
 -	sh3-*-*-*)		echo "sh3" ;;
 -	sh4-*-*-*)		echo "sh4" ;;
++	aarch64*-*-*-*)		echo "aarch64" ;;
  	x86_64-*-*-*)		echo "x86_64" ;;
- 	*)			echo "unknown" ;;
+ 	*)
+ 		echo "Couldn't determine arch from triplet: $1" >&2
+@@ -70,18 +28,6 @@ triplet_to_arch() {
  	esac
+ }
+ 
+-triplet_to_libc() {
+-	case "$1" in
+-	*-*-*-uclibc*)	echo "uclibc" ;;
+-	*-*-*-musl*)	echo "musl" ;;
+-	*-*-*-gnu*)	echo "glibc" ;;
+-	*)
+-		echo "Couldn't determine libc from triplet: $1" >&2
+-		exit 1
+-		;;
+-	esac
+-}
+-
+ readconfig() {
+ 	local _APORTSDIR _REPODEST _SRCDEST _ABUILD_USERDIR
+ 	local _CC=cc _CXX=c++ _LD=ld _CARCH _CHOST _CTARGET _CPPFLAGS _CFLAGS _CXXFLAGS _LDFLAGS
+@@ -187,10 +133,8 @@ readconfig() {
+ 	fi
+ 
+ 	[ -z "$CARCH" ] && CARCH="$(triplet_to_arch $CHOST)"
+-	[ -z "$CLIBC" ] && CLIBC="$(triplet_to_libc $CHOST)"
+ 	[ -z "$CBUILD_ARCH" ] && CBUILD_ARCH="$(triplet_to_arch $CBUILD)"
+ 	[ -z "$CTARGET_ARCH" ] && CTARGET_ARCH="$(triplet_to_arch $CTARGET)"
+-	[ -z "$CTARGET_LIBC" ] && CTARGET_LIBC="$(triplet_to_libc $CTARGET)"
+ 
+ 	if [ "$CHOST" != "$CTARGET" ]; then
+ 		# setup environment for creating cross compiler
 -- 
-2.51.0
+2.54.0
 
