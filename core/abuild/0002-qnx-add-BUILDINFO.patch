@@ -1,4 +1,4 @@
-From 26ba0830211ae2222b5a7a36e8effcd3801b40bf Mon Sep 17 00:00:00 2001
+From f2428d020912f715424f70a9479d9901ef1882ec Mon Sep 17 00:00:00 2001
 From: Leo Shen <i@szclsya.me>
 Date: Thu, 30 Oct 2025 14:49:32 +0000
 Subject: [PATCH 2/3] qnx: add BUILDINFO
@@ -9,7 +9,7 @@ Subject: [PATCH 2/3] qnx: add BUILDINFO
  1 file changed, 31 insertions(+), 1 deletion(-)
 
 diff --git a/abuild.in b/abuild.in
-index b9f082a..69c6da8 100644
+index a5efb5e..08e535d 100644
 --- a/abuild.in
 +++ b/abuild.in
 @@ -1089,6 +1089,7 @@ prepare_metafiles() {

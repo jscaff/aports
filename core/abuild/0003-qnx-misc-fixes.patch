@@ -1,4 +1,4 @@
-From 5d09813164e2866e41d880e4acd65dcdbb1cd2a0 Mon Sep 17 00:00:00 2001
+From 07ee95b756124116c65fa130bd8e4533b76794b2 Mon Sep 17 00:00:00 2001
 From: Leo Shen <i@szclsya.me>
 Date: Tue, 21 Apr 2026 16:56:08 -0400
 Subject: [PATCH 3/3] qnx: misc fixes
@@ -11,7 +11,7 @@ Subject: [PATCH 3/3] qnx: misc fixes
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/abuild.in b/abuild.in
-index 69c6da8..022b80b 100644
+index 08e535d..3bf8798 100644
 --- a/abuild.in
 +++ b/abuild.in
 @@ -542,7 +542,7 @@ default_unpack() {

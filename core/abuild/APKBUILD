@@ -1,21 +1,23 @@
 # Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=abuild
-pkgver=3.16.0
+_pkgver=3.16.0
+pkgver=${_pkgver}_p1
 pkgrel=0
 pkgdesc="APK build toolchain, adapted for QNX"
 url="https://gitlab.alpinelinux.org/alpine/abuild/"
 arch="all"
 license="GPL-2.0-only"
+depends="qnx-utils nproc apk-tools fakeroot busybox openssl pkgconf pax-utils 
+    libssl3 libcrypto3 zlib-ng gawk curl bc tar gzip bzip2 zstd xz"
 makedepends="scdoc pkgconf pkgconf-dev openssl-dev zlib-ng-dev"
-depends="qnx-utils nproc apk-tools fakeroot busybox openssl pkgconf pax-utils libssl3 libcrypto3 zlib-ng gawk curl bc"
 options="suid"
 subpackages="$pkgname-doc"
-source="https://gitlab.alpinelinux.org/alpine/abuild/-/archive/$pkgver/abuild-$pkgver.tar.gz
+source="https://gitlab.alpinelinux.org/alpine/abuild/-/archive/$_pkgver/abuild-$_pkgver.tar.gz
     0001-qnx-remove-features-not-used-by-QNX.patch
     0002-qnx-add-BUILDINFO.patch
     0003-qnx-misc-fixes.patch
 "
-builddir="$srcdir"/abuild-$pkgver
+builddir="$srcdir"/abuild-$_pkgver
 
 build() {
     make VERSION="$pkgver-r$pkgrel"
@@ -27,7 +29,7 @@ package() {
 
 sha512sums="
 1a889ac88715ef988d3970163122d603329c5b02e85b0329b497c1b940a2dc25d852f25320af79415d6b2050184d9ff14ccfcc14f286d3b2dabad19634861026  abuild-3.16.0.tar.gz
-1d28baf6a3905b1d5fa47cf062225d34412791df6d71e04f512077229221b2840ac1da12898adc679ecc56a371b1e56960311c9f5262490723bdc804190533a5  0001-qnx-remove-features-not-used-by-QNX.patch
-bf72ce1d71c18c08c3712bcb5dd03c99994da27804d32c15e072ce2ddc9454af415ad5bb959ffe61c4b7dc0286a8d183df9c59650ca97b182276db4bbdab4122  0002-qnx-add-BUILDINFO.patch
-d669a9404f261f5d0ca4a37786bf4ad7dbad8715ce3b8f0392a3b2455be27285a20a95659a5d420c6533b11c6458c989062d15e4d2c32db61d9baac595e5d525  0003-qnx-misc-fixes.patch
+5465eff256b593e2698d8ba40677a6d36a5c91018f9027792d5b19e9ba43b72e19e162be07ac6122fa64d915b0115bc7a338a8a1a27a82fc9b86dbbf81b1964f  0001-qnx-remove-features-not-used-by-QNX.patch
+d5e850a33786c95ec40a1c2c697cc12e0e182afd673f5027f5020d29046f8eeacdf6873f0902a5eee01cc641bb418b47e36688e70ac7771bc949715940858191  0002-qnx-add-BUILDINFO.patch
+e003d4a05702baca06fd990e1d7c316d5b0b75d649090e21a33c7f1b17d47beacaa667975c12d81ed219a8db39f39b00525fd433de46d009ee6e1005db0e2afd  0003-qnx-misc-fixes.patch
 "
