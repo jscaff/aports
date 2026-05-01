@@ -1,0 +1,93 @@
+# Maintainer: Leo Shen <yishen@qnx.com>
+pkgname=llvm-runtimes
+_llvm_ver=22.1.4
+_llvm_major=${_llvm_ver%%.*}
+_patch_ver=0
+pkgver=${_llvm_ver}_p${_patch_ver}
+pkgrel=0
+_patch_rev=0
+pkgdesc="Low Level Virtual Machine compiler system."
+arch="all"
+url="https://llvm.org/"
+vcs_url="https://github.com/qnx-ports/llvm-project"
+license="Apache-2.0"
+# libc++-bootstrap is provided by libc++. During initial bootstrap remove -bootstrap and manually install libc++-dev
+makedepends="python3 sed cmake ninja perl qnx-io-sock-dev liblocale-shim-dev libc++-dev-bootstrap"
+source="https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-$pkgver.tar.gz
+    libcxx.clang.cfg"
+options="!check" # takes too long
+subpackages="compiler-rt:rt libc++:libcxx libc++-dev:libcxx_dev libunwind:libunwind libunwind-dev:libunwind_dev"
+builddir="$srcdir/llvm-project-qnx-$pkgver"
+
+build() {
+    if [[ $CARCH == "x86_64" ]]; then
+        _llvm_triplet="x86_64-pc-qnx"
+    elif [[ $CARCH == "aarch64" ]]; then
+        _llvm_triplet="aarch64-unknown-qnx"
+    else
+        die "$CARCH not supported"
+    fi
+
+    CC=clang CXX=clang++ CXXFLAGS="--config $srcdir/libcxx.clang.cfg" \
+    cmake -B build -G Ninja -S runtimes -Wno-dev \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_DOCDIR=share/doc \
+        -DCMAKE_INSTALL_LIBEXECDIR=bin \
+        -DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind;libcxx;libcxxabi" \
+        -DCOMPILER_RT_INSTALL_PATH="/usr/lib/llvm$_llvm_major/lib/clang/$_llvm_major" \
+        -DCOMPILER_RT_INCLUDE_TESTS=OFF \
+        -DCOMPILER_RT_BUILD_SANITIZERS=ON \
+        -DCOMPILER_RT_BUILD_GWP_ASAN=OFF \
+        -DCOMPILER_RT_BUILD_BUILTINS=ON \
+        -DCOMPILER_RT_USE_BUILTINS_LIBRARY=OFF \
+        -DCOMPILER_RT_BUILD_PROFILE=ON \
+        -DCOMPILER_RT_USE_LIBCXX=ON \
+        -DSANITIZER_CXX_ABI=libc++
+
+    ninja -C build
+}
+
+package() {
+    DESTDIR="$pkgdir" ninja -C build install
+}
+
+libcxx() {
+    pkgdesc="LLVM libc++ library"
+    depends="libunwind"
+
+    amove usr/lib/libc++*.so.*
+}
+
+libcxx_dev() {
+    pkgdesc="LLVM libc++ library (development files)"
+    depends="libc++=$pkgver-r$pkgrel liblocale-shim-dev libunwind-dev"
+    provides="libc++-dev-bootstrap=$pkgver-r$pkgrel"
+
+    amove usr/lib/libc++*.so
+    amove usr/include/c++
+}
+
+rt() {
+    pkgdesc="LLVM compiler-rt runtime libraries"
+
+    amove usr/lib/llvm$_llvm_major/lib/clang/$_llvm_major
+}
+
+libunwind() {
+    pkgdesc="LLVM libunwind library"
+
+    amove usr/lib/libunwind.so.*
+}
+
+libunwind_dev() {
+    pkgdesc="LLVM libunwind library (development files)"
+
+    amove usr/lib/libunwind.so
+    amove usr/include
+}
+
+sha512sums="
+cb8d5c6fd45923744652f75100984948fdb2873f74e0cd0129f4f79e6a4226a56d7d02710307f33b9816af8a987c2b6637ee6b5e2837511454b4cbdcd21c09de  qnx-22.1.4_p0.tar.gz
+103ffbb207e88a0994f74b7397f9a2d7cba7c871c9f6d629c7c43ca068ae92dbe83b58c525c49907c3b1b416284cd4d4fe5d42f2974868e9bf436d32c47dbb87  libcxx.clang.cfg
+"
