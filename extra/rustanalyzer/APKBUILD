@@ -1,0 +1,56 @@
+# Contributor: S.M Mukarram Nainar <theone@sm2n.ca>
+# Maintainer: team/rust <alpine@ptrcnull.me>
+pkgname=rust-analyzer
+pkgver=2026.03.09
+_pkgver=${pkgver//./-}
+pkgrel=0
+pkgdesc="Rust compiler front-end for IDEs"
+url="https://github.com/rust-lang/rust-analyzer"
+arch="all"
+license="MIT OR Apache-2.0"
+depends=""
+makedepends=""
+checkdepends="rustfmt"
+source="https://github.com/rust-lang/rust-analyzer/archive/$_pkgver/rust-analyzer-$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$_pkgver"
+# requires rustup toolchain to run rustup rustfmt for sourcegen
+options="net !check"
+
+# crashes otherwise
+export CARGO_PROFILE_RELEASE_PANIC="unwind"
+
+prepare() {
+	default_prepare
+
+	# build against system-provided mimalloc.
+	# newline because file doesn't end in newline..
+	cat >> .cargo/config.toml <<-EOF
+        [patch.'crates-io']
+            nix1 = {package = "nix", version = "0.30.1", git = "https://github.com/qnx-ports/nix", branch = "qnx-0.30.1"}
+            nix2 = {package = "nix", version = "0.31.2", git = "https://github.com/qnx-ports/nix", branch = "qnx-0.31.2"}
+            libc = { git = "https://github.com/qnx-ports/libc-rs", branch="qnx-0.2.183" }
+
+	EOF
+
+	cargo update
+}
+
+build() {
+	CFG_RELEASE="$pkgver" \
+		cargo build \
+		--release
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm755 target/release/rust-analyzer -t "$pkgdir"/usr/bin/
+}
+
+
+
+sha512sums="
+f3ac7d2bdff67e1dae1807b587e665b4c33b56d1859ce87c3ccaeabdd469be57bd76755c21f60ccf6c3cf914f787d0763621f082ae8ef6641b9a7587463e06b3  rust-analyzer-2026.03.09.tar.gz
+"
