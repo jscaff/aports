@@ -3,7 +3,7 @@
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=btop
 pkgver=1.4.6
-pkgrel=1
+pkgrel=2
 pkgdesc="Resource monitor"
 url="https://github.com/aristocratos/btop"
 license="Apache-2.0"
@@ -25,5 +25,5 @@ package() {
 }
 
 sha512sums="
-fd560f229312a87af54e8d768074ec195d21533807a04b11931c3b44467ec83c65863e8d41e3632ae230487c9d3248498237f0b3d9a1b0f706ece49c9d04358d  btop-1.4.6-r1.tar.gz
+b3b08ca1441d9c1e69e3945bb2b7b20a9bb5d3dce2eda7a2d48488fa683eedc79427439f7e9337176d84ca10c43b47aee279d452de60a9cc0f0ccb71eddd52a2  btop-1.4.6-r2.tar.gz
 "
