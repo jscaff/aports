@@ -1,0 +1,88 @@
+# Alpine-Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=python3-twisted
+pkgver=25.5.0
+pkgrel=0
+pkgdesc="Asynchronous networking framework written in Python3"
+url="https://twistedmatrix.com/"
+arch="noarch"
+license="MIT"
+depends="
+	python3-cryptography
+	python3-zope-interface
+	python3-constantly
+	python3-incremental
+	python3-automat
+	python3-hyperlink
+	python3-attrs
+	python3-typing-extensions
+	python3-pyhamcrest
+	python3-service_identity
+	python3-idna
+	python3-pyserial
+	python3-h2
+	python3-setuptools
+	"
+makedepends="
+	python3-gpep517
+	python3-hatch-fancy-pypi-readme
+	python3-hatchling
+	python3-incremental
+	python3-wheel
+"
+checkdepends="xvfb-run python3-appdirs tzdata python3-asn1 python3-bcrypt"
+subpackages="$pkgname-doc $pkgname-tests"
+source="https://github.com/twisted/twisted/archive/twisted-$pkgver.tar.gz
+	hanging-test.patch
+	"
+builddir="$srcdir"/twisted-twisted-$pkgver
+options="!check" # bunch of random failures
+
+prepare() {
+	default_prepare
+	# Remove tests that always fail due to our not-upstream testing procedure
+	# these tests if invoking the Twisted binary and twisted.trial tests work
+	rm -f src/twisted/test/test_main.py
+}
+
+build() {
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+}
+
+check() {
+	PYTHONPATH="$(echo $PWD/build/lib*)" xvfb-run -a python3 \
+		-c 'from twisted.scripts.trial import run; run()' twisted
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		.dist/twisted*.whl
+	# python3 setup.py install --skip-build --root="$pkgdir"
+	# Do not remove the test as it is a legitimate module and not
+	# a (common) packaging mistake by upstream
+	# rm -rf "$pkgdir"/usr/lib/python3*/site-packages/twisted/test
+
+	_mans="pyhtmlizer.1 trial.1 twistd.1"
+	for _man in $_mans; do
+		install -m644 -D "$builddir"/docs/core/man/$_man \
+			"$pkgdir"/usr/share/man/man1/$_man
+	done
+}
+
+tests() {
+	amove usr/lib/python3*/site-packages/twisted/test
+	amove usr/lib/python3*/site-packages/twisted/*/test
+}
+
+doc() {
+	default_doc
+}
+
+sha512sums="
+2cc54ace787b986a1682a500e41b64f2c17cc1c608b054e64ad932f6bf42ec19979cbdc3a6121e879e1b1d4578ea1f4a66b992489ee00a3a85e601d0f29b711a  twisted-25.5.0.tar.gz
+523a4d89343cc2c9914e15fdfd25b9f89c9bee2a00d6b10c808ad4af4dd46689f5f0ebe529bd2ba4855dc7d80192e79f829192bc9171a5b2ae13dc04a181e352  hanging-test.patch
+"
+
+

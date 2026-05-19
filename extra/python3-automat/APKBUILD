@@ -1,0 +1,37 @@
+# Alpine-Contributor: Leo <thinkabit.ukim@gmail.com>
+# Alpine-Contributor: Tiago Ilieve <tiago.myhro@gmail.com>
+# Alpine-Maintainer: Tiago Ilieve <tiago.myhro@gmail.com>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=python3-automat
+pkgver=24.8.1
+pkgrel=0
+pkgdesc="Self-service finite-state machines for the programmer on the go"
+url="https://automat.readthedocs.io/"
+arch="noarch"
+license="MIT"
+depends="python3-attrs"
+makedepends="python3-wheel python3-setuptools_scm python3-build python3-installer python3-pyproject-hooks"
+checkdepends="python3-pytest python3-pluggy"
+source="$pkgname-$pkgver.tar.gz::https://github.com/glyph/automat/archive/v$pkgver.tar.gz"
+builddir="$srcdir/automat-$pkgver"
+options="!check" # no tests
+
+prepare() {
+	default_prepare
+}
+
+build() {
+	export SETUPTOOLS_SCM_PRETEND_VERSION=$pkgver
+	python -m build --wheel --no-isolation
+}
+
+package() {
+	export SETUPTOOLS_SCM_PRETEND_VERSION=$pkgver
+	python3 -m installer --destdir="$pkgdir" dist/*.whl
+}
+
+sha512sums="
+77d1f31ea045e1da22dc2f10104bed0f302e5d47af3e3158e74693b5af35c6aa08199dd816da8b1e8baa92f7e7eaefa06e0b748ff47662bceb13d1ef27e5c01f  python3-automat-24.8.1.tar.gz
+"
+
+

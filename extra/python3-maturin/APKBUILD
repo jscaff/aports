@@ -1,0 +1,100 @@
+# Alpine-Contributor: omni <omni+alpine@hack.org>
+# Alpine-Maintainer: messense <messense@icloud.com>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=maturin
+pkgver=1.11.5
+pkgrel=0
+pkgdesc="Build and publish crates with pyo3, rust-cpython and cffi bindings"
+url="https://github.com/PyO3/maturin"
+arch="all"
+license="Apache-2.0 OR MIT"
+#TODO required cargo
+makedepends="
+	bzip2-dev
+	dbus-dev
+	openssl-dev
+	python3-gpep517
+	python3-setuptools
+	python3-setuptools-rust
+	python3-wheel
+	"
+# We are missing cargo-nextest and patchelf
+# checkdepends="
+# 	cargo-nextest
+# 	libffi-dev
+# 	patchelf
+# 	python3-cffi
+# 	python3-virtualenv
+# 	python3-dev
+# 	"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	python3-$pkgname:pkg_python3:noarch
+	"
+source="
+    $pkgname-$pkgver.tar.gz::https://github.com/PyO3/maturin/archive/v$pkgver.tar.gz
+    001-qnx-support.patch
+"
+options="net !check"
+
+_features="--features=full,native-tls,password-storage"
+# these only work in a git checkout
+_test_filter='!test(~git_sdist_generator) & !test(~pyo3_mixed_include_exclude)'
+
+prepare() {
+	default_prepare
+
+    echo '[patch.crates-io]' >> "$builddir"/Cargo.toml
+    echo 'libc = { git = "https://github.com/qnx-ports/libc-rs", branch = "qnx-0.2.183" }' >> "$builddir"/Cargo.toml
+    echo 'cc = { git = "https://github.com/qnx-ports/cc-rs", branch = "qnx-1.2.48" }' >> "$builddir"/Cargo.toml
+    echo 'target-lexicon = { git = "https://github.com/qnx-ports/target-lexicon", branch = "qnx-0.13.5" }' >> "$builddir"/Cargo.toml
+    echo 'platform-info = { git = "https://github.com/qnx-ports/platform-info", branch = "qnx-2.1.0" }' >> "$builddir"/Cargo.toml
+
+	cargo update
+    cargo fetch
+}
+
+build() {
+	export OPENSSL_NO_VENDOR=1
+
+	export MATURIN_SETUP_ARGS="--no-default-features $_features"
+
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+
+	./target/release/maturin completions bash > $pkgname.bash
+	./target/release/maturin completions zsh > $pkgname.zsh
+}
+
+check() {
+	export OPENSSL_NO_VENDOR=1
+
+	cargo nextest run \
+	  --frozen \
+	  --no-default-features "$_features" \
+	  --no-fail-fast \
+	  -E "$_test_filter"
+}
+
+package() {
+	install -Dm644 $pkgname.bash "$pkgdir"/usr/share/bash-completion/completions/$pkgname
+	install -Dm644 $pkgname.zsh "$pkgdir"/usr/share/zsh/site-functions/_$pkgname
+
+    python3 -m installer -d "$pkgdir" "$builddir"/.dist/*.whl
+}
+
+pkg_python3() {
+	pkgdesc="$pkgdesc (python module)"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/lib/python3*
+}
+
+
+
+sha512sums="
+49e7976be5790f524d5a423519c4ee73ccb450f0e84fea5ba691421cd8e303cb4166324d42985b1ae321a71c4295f244632da194a5be7cacbe7951cdbc0dbb92  maturin-1.11.5.tar.gz
+a92fe36e438a1b3ddc7fb7c67cc8ab6d36b40428046fdb6d8374947093cd93257fbbad6499b6c039050fc3dd525e6fd3b67e10392bd550501cf331e6d19573fc  001-qnx-support.patch
+"

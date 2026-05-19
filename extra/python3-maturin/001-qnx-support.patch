@@ -1,0 +1,54 @@
+diff --git a/src/target/mod.rs b/src/target/mod.rs
+index 8838d84a..33e05c9c 100644
+--- a/src/target/mod.rs
++++ b/src/target/mod.rs
+@@ -44,6 +44,7 @@ pub enum Os {
+     Aix,
+     Hurd,
+     Cygwin,
++    Nto,
+ }
+ 
+ impl fmt::Display for Os {
+@@ -65,6 +66,7 @@ impl fmt::Display for Os {
+             Os::Aix => write!(f, "AIX"),
+             Os::Hurd => write!(f, "Hurd"),
+             Os::Cygwin => write!(f, "Cygwin"),
++            Os::Nto => write!(f, "Nto"),
+         }
+     }
+ }
+@@ -218,6 +220,7 @@ fn get_supported_architectures(os: &Os) -> Vec<Arch> {
+         Os::Aix => vec![Arch::Powerpc64],
+         Os::Hurd => vec![Arch::X86, Arch::X86_64],
+         Os::Cygwin => vec![Arch::X86, Arch::X86_64],
++        Os::Nto => vec![Arch::X86_64, Arch::Aarch64]
+     }
+ }
+ 
+@@ -293,6 +296,7 @@ impl Target {
+             OperatingSystem::Aix => Os::Aix,
+             OperatingSystem::Hurd => Os::Hurd,
+             OperatingSystem::Cygwin => Os::Cygwin,
++            OperatingSystem::Nto => Os::Nto,
+             unsupported => bail!("The operating system {:?} is not supported", unsupported),
+         };
+ 
+@@ -474,6 +478,7 @@ impl Target {
+             Os::Aix => "aix",
+             Os::Hurd => "gnu",
+             Os::Cygwin => "cygwin",
++            Os::Nto => "qnx",
+         }
+     }
+ 
+@@ -570,7 +575,8 @@ impl Target {
+             | Os::Wasi
+             | Os::Aix
+             | Os::Hurd
+-            | Os::Cygwin => true,
++            | Os::Cygwin 
++            | Os::Nto => true,
+         }
+     }
+ 

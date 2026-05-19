@@ -1,0 +1,39 @@
+# Alpine-Contributor: Peter Bui <pnutzh4x0r@gmail.com>
+# Alpine-Contributor: Dmitry Romanenko <dmitry@romanenko.in>
+# Alpine-Maintainer: Achill Gilgenast <achill@achill.org>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=python3-certifi
+pkgver=2026.2.25
+pkgrel=0
+pkgdesc="Python3 package for providing Mozilla's CA Bundle"
+url="https://pypi.org/project/certifi"
+arch="noarch"
+license="MPL-2.0"
+depends="ca-certificates-bundle"
+makedepends="python3-gpep517 python3-setuptools python3-wheel"
+source="https://files.pythonhosted.org/packages/source/c/certifi/certifi-$pkgver.tar.gz
+	use-alpine-system-certs.patch
+	"
+builddir="$srcdir/certifi-$pkgver"
+options="!check" # no tests
+
+build() {
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		.dist/*.whl
+
+	# Remove bundled certificates, we use system certificates
+	rm -f "$pkgdir"/usr/lib/python3*/site-packages/certifi/cacert.pem
+}
+
+
+
+sha512sums="
+beb2a95cc9066b828b33ec9003c8f9fa8b5dec67de262ad13908a1f26ada64eb64b572c775a648d091ac95a52380d4be3a2faccecc03d761e1ee77fc08936f3c  certifi-2026.2.25.tar.gz
+5a0a6a9309294abc14a188b16fbfe0086c05f6e6fd8d8cb8e713faeb44c8341e0c7a8193ed63a32f33ab6231072b1ac892858817333a5c32eefff33b6c6b6495  use-alpine-system-certs.patch
+"

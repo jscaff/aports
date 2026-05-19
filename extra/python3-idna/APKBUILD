@@ -1,0 +1,44 @@
+# Alpine-Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Alpine-Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=python3-idna
+_pkgname=idna
+pkgver=3.15
+pkgrel=0
+pkgdesc="IDNA 2008 and UTS #46 for Python3"
+url="https://github.com/kjd/idna"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="
+	python3-gpep517
+	python3-flit-core
+	python3-installer
+	python3-wheel
+	"
+checkdepends="python3-pytest"
+source="$_pkgname-$pkgver.tar.gz::https://github.com/kjd/idna/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+}
+
+check() {
+	python3 -m venv --clear --without-pip --system-site-packages .testenv
+	.testenv/bin/python3 -m installer .dist/*.whl
+	.testenv/bin/python3 -m pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		.dist/*.whl
+}
+
+sha512sums="
+0c99c3a99f1ea391197f4bf52770338fb44746dfbcfdc324e73daa48f85ad718d91ffaba9750a6a9f04dd66fee0469cf1c9dcb5aef6213fc1206acc2657607c0  idna-3.15.tar.gz
+"
+
+

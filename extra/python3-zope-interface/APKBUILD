@@ -1,0 +1,41 @@
+# Alpine-Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=python3-zope-interface
+_pkgname=zope.interface
+pkgver=7.2
+pkgrel=0
+pkgdesc="Separate distribution of the zope.interface package used in Zope"
+url="https://zopeinterface.readthedocs.io"
+arch="all"
+license="ZPL-2.1"
+makedepends="python3-dev python3-setuptools python3-gpep517 python3-wheel"
+# TODO testing deps (we have none of these)
+# checkdepends="python3-coverage python3-zope-event python3-zope-testing"
+options="!check"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+
+}
+
+check() {
+	python3 -m venv --clear --without-pip --system-site-packages .testenv
+	.testenv/bin/python3 -m installer --no-compile .dist/*.whl
+	cd src && ../.testenv/bin/python3 -m unittest \
+		zope/interface/common/tests/*.py \
+		zope/interface/tests/*.py
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" .dist/*.whl
+}
+
+sha512sums="
+eb927395bd4c4b2567dfeabad9a88bf91cc0cc0838289e96d7452e6a7c9ea56237a1d1f492703eac71ac0957dc0d3e23f57ceec55ff82fcffbbf413e09868a9c  zope.interface-7.2.tar.gz
+"
+
+

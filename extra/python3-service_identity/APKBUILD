@@ -1,0 +1,41 @@
+# Alpine-Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Alpine-Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=python3-service_identity
+_pkgname=service-identity
+pkgver=24.2.0
+pkgrel=0
+pkgdesc="Service identity verification for pyOpenSSL & cryptography."
+url="https://pypi.org/project/service-identity/"
+arch="noarch"
+license="MIT"
+depends="python3-asn1 python3-asn1-modules python3-attrs python3-cryptography"
+makedepends="python3-gpep517 python3-hatchling python3-hatch-vcs"
+checkdepends="python3-idna python3-openssl python3-pytest-runner"
+source="$pkgname-$pkgver.tar.gz::https://github.com/pyca/service-identity/archive/$pkgver.tar.gz
+	remove-fancy-pypi-readme.patch
+	"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+}
+
+check() {
+	python3 -m venv --clear --without-pip --system-site-packages .testenv
+	.testenv/bin/python3 -m installer .dist/*.whl
+	.testenv/bin/python3 -m pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		.dist/*.whl
+}
+
+sha512sums="
+a2630402a87c8e1de67d2b936eecd686cdae94fb87fb232cae1bfb17496e1512f942c681f488f56bb599f9bd0448b7c60f782c395232ec6e42d3116d044fbd4c  python3-service_identity-24.2.0.tar.gz
+16df986e2f1da7d19788f9a2d0ef9d2b8a30c7c083aac63f0b12ab4a28b9036cc000946a434d73de41de4678e95ad434cff384bfae5e9ae952b7aeaa4128f88e  remove-fancy-pypi-readme.patch
+"
+

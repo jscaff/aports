@@ -1,0 +1,84 @@
+# Alpine-Contributor: August Klein <amatcoder@gmail.com>
+# Alpine-Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=python3-cryptography
+# version must be compatible with python3-openssl
+pkgver=47.0.0
+pkgrel=0
+pkgdesc="Cryptographic recipes and primitives for Python"
+url="https://cryptography.io/"
+arch="all"
+license="Apache-2.0 OR BSD-3-Clause"
+depends="python3 python3-cffi"
+# TODO requires cargo
+makedepends="
+	libffi-dev
+	openssl-dev>3
+	python3-flit-core
+	python3-gpep517
+	python3-maturin
+	python3-setuptools
+	python3-wheel
+	python3-dev
+	"
+checkdepends="
+	python3-certifi
+	python3-pretend
+	python3-pytest
+	python3-pytest-benchmark
+	python3-pytest-xdist
+	"
+source="https://files.pythonhosted.org/packages/source/c/cryptography/cryptography-$pkgver.tar.gz
+	https://files.pythonhosted.org/packages/source/c/cryptography_vectors/cryptography_vectors-$pkgver.tar.gz
+	vectors-build-backend-flit_core_patch
+	"
+builddir="$srcdir/cryptography-$pkgver"
+options="net"
+
+prepare() {
+	default_prepare
+
+	cd "$srcdir/cryptography_vectors-$pkgver"
+	patch pyproject.toml "$srcdir"/vectors-build-backend-flit_core_patch
+
+    # Fix qnx rust deps
+	cd "$srcdir/cryptography-$pkgver"
+    echo '[patch.crates-io]' >> "$builddir"/Cargo.toml
+    echo 'libc = { git = "https://github.com/qnx-ports/libc-rs", branch = "qnx-0.2.183" }' >> "$builddir"/Cargo.toml
+    echo 'cc = { git = "https://github.com/qnx-ports/cc-rs", branch = "qnx-1.2.62" }' >> "$builddir"/Cargo.toml
+    echo 'target-lexicon = { git = "https://github.com/qnx-ports/target-lexicon", branch = "qnx-0.13.5" }' >> "$builddir"/Cargo.toml
+
+    cargo update
+}
+
+build() {
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+
+	# prepare cryptography vectors for testing
+	cd "$srcdir/cryptography_vectors-$pkgver"
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+}
+
+check() {
+	python3 -m venv --clear --without-pip --system-site-packages test-env
+	test-env/bin/python3 -m installer .dist/cryptography*.whl
+	test-env/bin/python3 -m installer "$srcdir"/cryptography_vectors-$pkgver/.dist/cryptography*.whl
+	test-env/bin/python3 -m pytest -n $JOBS
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		.dist/cryptography-*.whl
+}
+
+
+
+sha512sums="
+0d2fd9de7b6cfafef5f66e4fb10b7eaa8712bc0ed7bca19a017963b8ea707813a7bdc841f7d4aa512da7963eff3707792d46cb93058875fcc447961256c32d9e  cryptography-47.0.0.tar.gz
+82fbad5a395879ba4dac4aa015271522a832da126f7ec204274821d78100ed17c4047bf4d1526f82e7785bdf9d375741eecfe4cd24f3c5dcdcabc2c7cd01f67d  cryptography_vectors-47.0.0.tar.gz
+be7b102bf2220913996ee934a506c2f989c47e1e7f7c05b17848cd75ffbe6e396d1f46510bde37c2079f7a576c1f157190aef5f5fa17431bf231dcd08a52efaa  vectors-build-backend-flit_core_patch
+"
