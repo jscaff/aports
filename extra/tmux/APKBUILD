@@ -3,13 +3,13 @@
 maintainer="Celeste <cielesti@protonmail.com>"
 pkgname=tmux
 pkgver=3.6a
-pkgrel=0
+pkgrel=1
 pkgdesc="Tool to control multiple terminals from a single terminal"
 url="https://tmux.github.io"
 arch="all"
 license="ISC"
-depends="ncurses-terminfo-base libevent ncurses qnx-io-sock-dev"
-makedepends="bison texinfo libevent-dev ncurses-dev qnx-io-sock-dev"
+depends="ncurses-terminfo-base>=6.6 libevent ncurses>=6.6 qnx-io-sock-dev"
+makedepends="bison texinfo libevent-dev ncurses-dev>=6.6 qnx-io-sock-dev"
 subpackages="$pkgname-doc"
 source="https://github.com/tmux/tmux/releases/download/$pkgver/tmux-$pkgver.tar.gz
     qnx-compat.patch
