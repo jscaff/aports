@@ -1,0 +1,139 @@
+# Maintainer: Leo Shen <yishen@qnx.com>
+pkgname=clang
+pkgver=22
+pkgrel=0
+pkgdesc="C language family frontend for LLVM, default version"
+arch="noarch"
+url="https://clang.llvm.org/"
+license="Apache-2.0"
+subpackages="$pkgname-static $pkgname-dev $pkgname-ccache $pkgname-extra-tools:extra $pkgname-doc $pkgname-bash-completion"
+options="!check"
+
+_bin="analyze-build
+    c-index-test
+    clang
+    clang-cl
+    clang-cpp
+    clang-include-cleaner
+    clang-linker-wrapper
+    clang++
+    clang-apply-replacements
+    clang-change-namespace
+    clang-check
+    clang-doc
+    clang-extdef-mapping
+    clang-format
+    clang-include-fixer
+    clang-move
+    clang-offload-bundler
+    clang-offload-packager
+    clang-query
+    clang-refactor
+    clang-reorder-fields
+    clang-repl
+    clang-scan-deps
+    clang-tidy
+    clangd
+    diagtool
+    find-all-symbols
+    git-clang-format
+    hmaptool
+    intercept-build
+    modularize
+    nvptx-arch
+    pp-trace
+    run-clang-tidy
+    scan-build
+    scan-build-py
+    scan-view
+"
+
+package() {
+    depends="clang$pkgver"
+    mkdir -p "$pkgdir"/usr/bin
+    local name path
+    for path in $_binaries; do
+        echo "creating symlink for: $path"
+        name=${path##*/}
+        ln -sv ../lib/llvm$pkgver/bin/$name "$pkgdir"/usr/bin/$name
+    done
+    # GCC compat
+    ln -sv clang "$pkgdir"/usr/bin/cc
+    ln -sv clang++ "$pkgdir"/usr/bin/c++
+    cat > "$pkgdir"/usr/bin/c89 <<'EOF'
+#!/bin/sh
+_flavor="-std=c89"
+for opt; do
+    case "$opt" in
+    -ansi|-std=c89|-std=iso9899:1990) _flavor="";;
+    -std=*) echo "$(basename $0) called with non ANSI/ISO C option $opt" >&2
+        exit 1;;
+    esac
+done
+exec clang -Qunused-arguments $_flavor ${1+"$@"}
+EOF
+
+    cat > "$pkgdir"/usr/bin/c99 <<'EOF'
+#!/bin/sh
+_flavor="-std=c99"
+for opt; do
+    case "$opt" in
+    -std=c99|-std=iso9899:1999) _flavor="";;
+    -std=*) echo "$(basename $0) called with non ISO C99 option $opt" >&2
+        exit 1;;
+    esac
+done
+exec clang -Qunused-arguments $_flavor ${1+"$@"}
+EOF
+
+    cat > "$pkgdir"/usr/bin/gcc <<'EOF'
+#!/bin/sh
+exec clang -Qunused-arguments ${1+"$@"}
+EOF
+
+    cat > "$pkgdir"/usr/bin/g++ <<'EOF'
+#!/bin/sh
+exec clang++ -Qunused-arguments ${1+"$@"}
+EOF
+    chmod 0755 "$pkgdir"/usr/bin/c89
+    chmod 0755 "$pkgdir"/usr/bin/c99
+    chmod 0755 "$pkgdir"/usr/bin/gcc
+    chmod 0755 "$pkgdir"/usr/bin/g++
+}
+
+static() {
+    pkgdesc="C language family frontend for LLVM, default version (static libraries)"
+    depends="$pkgname$pkgver-static"
+    mkdir "$subpkgdir"
+}
+
+dev() {
+    pkgdesc="C language family frontend for LLVM, default version (development files)"
+    depends="$pkgname$pkgver-dev"
+    mkdir "$subpkgdir"
+}
+
+ccache() {
+    pkgdesc="C language family frontend for LLVM, default version (ccache binaries)"
+    depends="$pkgname$pkgver-ccache"
+    mkdir "$subpkgdir"
+}
+
+extra() {
+    pkgdesc="C language family frontend for LLVM, default version (extra clang tools)"
+    depends="$pkgname$pkgver-extra"
+    mkdir "$subpkgdir"
+}
+
+doc() {
+    pkgdesc="C language family frontend for LLVM, default version (documentations)"
+    depends="$pkgname$pkgver-doc"
+    mkdir "$subpkgdir"
+}
+
+bashcomp() {
+    pkgdesc="C language family frontend for LLVM, default version (bash completion)"
+    depends="$pkgname$pkgver-bash-completion"
+    mkdir "$subpkgdir"
+}
+
