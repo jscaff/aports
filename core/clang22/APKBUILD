@@ -1,0 +1,186 @@
+# Maintainer: Leo Shen <yishen@qnx.com>
+pkgname=clang22
+_patch_rev=1
+pkgver=22.1.4_p$_patch_rev
+pkgrel=0
+pkgdesc="C language family front-end for LLVM"
+arch="all"
+url="https://llvm.org"
+vcs_url="https://github.com/qnx-ports/llvm-project"
+license="Apache-2.0 WITH LLVM-exception"
+options="!check" # fail to build
+_lib_depends="libxml2-dev llvm22 llvm22-dev llvm22-gtest llvm22-static"
+depends="libxml2 llvm22-libs binutils qnx-gcc qnx-gcc-libs"
+depends_dev="$pkgname=$pkgver-r$pkgrel $_lib_depends"
+makedepends="cmake ninja help2man $_lib_depends"
+subpackages="$pkgname-static $pkgname-dev $pkgname-ccache $pkgname-extra-tools:extra $pkgname-doc $pkgname-bash-completion"
+source="
+    https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-${pkgver}.tar.gz"
+builddir="$srcdir/llvm-project-qnx-${pkgver}"
+_llvmver=${pkgver%%.*}
+
+build() {
+	CFLAGS="-fPIE" CXXFLAGS="-fPIE" LDFLAGS="-lsocket" \
+	cmake -B build -S clang -G Ninja -Wno-dev \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCLANG_CONFIG_FILE_SYSTEM_DIR=/etc/clang$_llvmver \
+		-DCMAKE_INSTALL_PREFIX=/usr/lib/llvm$_llvmver \
+		-DCMAKE_INSTALL_RPATH=/usr/lib/llvm$_llvmver/lib \
+		-DCMAKE_MODULE_PATH=$builddir/cmake/Modules \
+		-DLLVM_CONFIG=/usr/lib/llvm$_llvmver/bin/llvm-config \
+		\
+		-DCLANG_BUILT_STANDALONE=ON \
+		-DCLANG_LINK_CLANG_DYLIB=ON \
+		-DCLANG_ENABLE_ARCMT=ON \
+		-DCLANG_INCLUDE_TESTS=OFF \
+		-DCLANG_PLUGIN_SUPPORT=ON \
+		-DCLANG_VENDOR=QNX \
+		-DENABLE_LINKER_BUILD_ID=ON \
+		-DLIBCLANG_BUILD_STATIC=OFF \
+		-DLLVM_ENABLE_RTTI=ON \
+		-DLLVM_INCLUDE_TESTS=OFF \
+		-DLLVM_LINK_LLVM_DYLIB=ON \
+		-DLLVM_MAIN_SRC_DIR=$builddir/llvm
+	ninja -C build clang-tblgen
+	ninja -C build
+	# doc
+	help2man --no-info \
+		--source "QNX" \
+		--name "QNX Clang $pkgver-r$pkgrel" \
+		--version-string "$pkgver-r$pkgrel" \
+		--help-option "--help-hidden" \
+		./build/bin/clang > clang.1
+}
+
+package() {
+	mkdir -p "$pkgdir"/etc/clang$_llvmver
+	# silent the unused-command-line-argument warning for -fstack-clash-protection,
+	# which is in abuild's default.conf but unimplemented for some architectures.
+	# (reference: https://maskray.me/blog/2023-08-25-clang-wunused-command-line-argument)
+	echo "-fstack-clash-protection" > "$pkgdir"/etc/clang$_llvmver/$CTARGET.cfg
+	
+	DESTDIR="$pkgdir" cmake --install build
+	mkdir -p "$pkgdir"/usr/bin
+	#install -Dm644 build/lib/libclang.a -t "$pkgdir"/usr/lib/llvm$_llvmver/lib/
+
+	# This is the default compiler, install symlinks
+	rm "$pkgdir"/usr/lib/llvm$_llvmver/share/clang/clang-format-bbedit.applescript
+
+	# TODO: add python and emacs support
+	mkdir -p "$pkgdir"/usr/share/bash-completion/completions
+    mv "$pkgdir"/usr/lib/llvm$_llvmver/share/clang/bash-autocomplete.sh \
+    	"$pkgdir"/usr/share/bash-completion/completions/clang
+
+    mv "$pkgdir"/usr/lib/llvm$_llvmver/share/man "$pkgdir"/usr/share/
+    # XXX: scan-build specifically needs to stay in llvm path, but scan-view has to not be
+    # everything uses different path lookup logic..
+    mv "$pkgdir"/usr/lib/llvm$_llvmver/share/scan-view "$pkgdir"/usr/share/
+
+    # symlink everything in the bin dir,
+    # into /usr/bin.
+    local clangexes="
+    	analyze-build
+    	amdgpu-arch
+    	c-index-test
+    	clang
+    	clang-cl
+    	clang-cpp
+    	clang-include-cleaner
+    	clang-linker-wrapper
+    	clang++
+    	clang-$_llvmver
+    	clang-apply-replacements
+    	clang-change-namespace
+    	clang-check
+    	clang-doc
+    	clang-extdef-mapping
+    	clang-format
+    	clang-include-fixer
+    	clang-move
+    	clang-offload-bundler
+    	clang-offload-packager
+    	clang-query
+    	clang-refactor
+    	clang-reorder-fields
+    	clang-repl
+    	clang-scan-deps
+    	clang-tidy
+    	clangd
+    	diagtool
+    	find-all-symbols
+    	git-clang-format
+    	hmaptool
+    	intercept-build
+    	modularize
+    	nvptx-arch
+    	pp-trace
+    	run-clang-tidy
+    	scan-build
+    	scan-build-py
+    	scan-view
+    	"
+    for clangexe in $clangexes; do
+    	ln -sfv ../lib/llvm$_llvmver/bin/$clangexe "$pkgdir"/usr/bin/$clangexe
+    done
+    ln -sfv ../lib/llvm$_llvmver/bin/clang-$_llvmver "$pkgdir"/usr/bin/clang++-$_llvmver
+
+    install -Dm644 "$builddir"/clang.1 -t "$pkgdir"/usr/share/man/man1/
+}
+
+extra() {
+	pkgdesc="Extra tools built using Clang's tooling APIs"
+
+	amove \
+    	usr/bin/clang-apply-replacements* \
+    	usr/bin/clang-change-namespace* \
+    	usr/bin/clang-check* \
+    	usr/bin/clang-doc* \
+    	usr/bin/clang-extdef-mapping* \
+    	usr/bin/clang-format* \
+    	usr/bin/clang-include-cleaner* \
+    	usr/bin/clang-include-fixer* \
+    	usr/bin/clang-move* \
+    	usr/bin/clang-offload-bundler* \
+    	usr/bin/clang-query* \
+    	usr/bin/clang-refactor* \
+    	usr/bin/clang-reorder-fields* \
+    	usr/bin/clang-repl* \
+    	usr/bin/clang-scan-deps* \
+    	usr/bin/clang-tidy* \
+    	usr/bin/clangd* \
+    	usr/bin/c-index-test* \
+    	usr/bin/diagtool* \
+    	usr/bin/find-all-symbols* \
+    	usr/bin/git-clang-format* \
+    	usr/bin/hmaptool* \
+    	usr/bin/modularize* \
+    	usr/bin/nvptx-arch \
+    	usr/bin/pp-trace* \
+    	usr/bin/run-clang-tidy* \
+    	usr/lib/llvm$_llvmver/bin/clang-check* \
+    	usr/lib/llvm$_llvmver/bin/clang-extdef-mapping* \
+    	usr/lib/llvm$_llvmver/share/clang/clang*
+}
+
+ccache() {
+	pkgdesc="$pkgdesc (ccache symlinks)"
+	install_if="$pkgname=$pkgver-r$pkgrel ccache"
+	replaces="$replaces ccache"
+
+	mkdir -p "$subpkgdir"/usr/lib/ccache/bin
+	ln -sfv ../../../bin/ccache "$subpkgdir"/usr/lib/ccache/bin/clang-$_llvmver
+	ln -sfv ../../../bin/ccache "$subpkgdir"/usr/lib/ccache/bin/clang++-$_llvmver
+	if [ "$_default_clang" = yes ]; then
+    	ln -sfv ../../../bin/ccache "$subpkgdir"/usr/lib/ccache/bin/clang++
+    	ln -sfv ../../../bin/ccache "$subpkgdir"/usr/lib/ccache/bin/clang
+	fi
+}
+
+dev() {
+	pkgdesc="$pkgdesc (development files for linking to libclang)"
+	amove usr/lib/llvm22/include
+}
+
+sha512sums="
+70390f6c3d69066ccee0a887b76c5db6cbfa60b0ba1ae4e40d9762f5fb3420f5219ef08c8a656644ff29cb57d1d2642572b5f3f76a6d8106f35c23582e9110e1  qnx-22.1.4_p1.tar.gz
+"
