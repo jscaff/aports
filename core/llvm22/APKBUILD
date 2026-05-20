@@ -1,0 +1,156 @@
+# Maintainer: Felix Xing <fxing@qnx.com>
+pkgname=llvm22
+pkgver=22.1.4
+pkgrel=0
+_patch_rev=1
+pkgdesc="Low Level Virtual Machine compiler system."
+arch="all"
+url="https://llvm.org/"
+license="Apache-2.0"
+depends_libs="qnx-io-sock libc++ libffi libunwind libxml2 zlib-ng zstd-libs libcurl"
+depends_dev="libc++-dev libffi-dev libunwind-dev libxml2-dev zlib-ng-dev zstd-dev curl-dev qnx-io-sock-dev"
+depends="qnx-gcc binutils $depends_libs"
+makedepends="python3 sed cmake ninja perl compiler-rt $depends_dev"
+source="
+    https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-${pkgver}_p${_patch_rev}.tar.gz
+    llvm.clang.cfg"
+options="!check" # takes too long
+subpackages="$pkgname-gtest:gtest $pkgname-libs $pkgname-static $pkgname-dev"
+builddir="$srcdir/llvm-project-qnx-${pkgver}_p${_patch_rev}"
+#builddir="$srcdir/llvm-project-6db748f047f9e77aa97205e9e3754d21d9d9a266"
+_llvmver=${pkgver%%.*}
+_prefix="usr/lib/llvm$_llvmver"
+
+build() {
+    if [[ $CARCH == "x86_64" ]]; then
+        _llvm_triplet="x86_64-pc-qnx"
+    elif [[ $CARCH == "aarch64" ]]; then
+        _llvm_triplet="aarch64-unknown-qnx"
+    else
+        die "$CARCH not supported"
+    fi
+
+    CFLAGS="-fPIC" CXXFLAGS="-fPIC" LDFLAGS="-lsocket" \
+    cmake -B build -S llvm -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/"$_prefix" \
+        -DCMAKE_SKIP_RPATH=ON \
+        -DCMAKE_INSTALL_DOCDIR=share/doc \
+        -DCMAKE_INSTALL_LIBEXECDIR=bin \
+        -DLLVM_HOST_TRIPLE="$_llvm_triplet" \
+        -DLLVM_DEFAULT_TARGET_TRIPLE="$_llvm_triplet" \
+        -DLLVM_TARGETS_TO_BUILD="AArch64;Hexagon;NVPTX;RISCV;SPIRV;WebAssembly;X86" \
+        -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON \
+        -DLLVM_BUILD_LLVM_DYLIB=ON \
+        -DLLVM_LINK_LLVM_DYLIB=ON \
+        -DLLVM_INSTALL_UTILS=ON \
+        -DLLVM_INSTALL_GTEST=ON \
+        -DLLVM_APPEND_VC_REV=OFF \
+        -DLLVM_BUILD_DOCS=ON \
+        -DLLVM_BUILD_EXAMPLES=OFF \
+        -DLLVM_BUILD_TESTS=OFF \
+        -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON \
+        \
+        -DLLVM_ENABLE_EH=OFF \
+        -DLLVM_ENABLE_ASSERTIONS=OFF \
+        -DLLVM_ENABLE_FFI=FORCE_ON \
+        -DLLVM_ENABLE_CURL=FORCE_ON \
+        -DLLVM_ENABLE_LIBEDIT=OFF \
+        -DLLVM_ENABLE_PIC=ON \
+        -DLLVM_ENABLE_RTTI=ON \
+        -DLLVM_ENABLE_ZLIB=FORCE_ON \
+        -DLLVM_ENABLE_ZSTD=FORCE_ON
+
+    ninja -C build
+}
+
+package() {
+    depends="$pkgname-libs=$pkgver-r$pkgrel"
+
+    # install LLVM
+    DESTDIR="$pkgdir" ninja -C build install
+
+    cd "$pkgdir"/$_prefix
+
+    # Symlink files from /usr/lib/llvm*/bin to /usr/bin.
+    mkdir -p "$pkgdir"/usr/bin
+    local name newname path
+    for path in bin/*; do
+        name=${path##*/}
+        # Add version infix/suffix to the executable name.
+        case "$name" in
+            llvm-*) newname="llvm$_llvmver-${name#llvm-}";;
+            *) newname="$name$_llvmver";;
+        esac
+        case "$name" in
+            FileCheck | obj2yaml | yaml2obj) continue;;
+        esac
+        ln -sv ../lib/llvm$_llvmver/bin/$name "$pkgdir"/usr/bin/$newname
+    done
+
+    mkdir -p "$pkgdir"/usr/include "$pkgdir"/usr/lib/cmake
+
+    # symlink include to /usr/include/llvm$_llvmver
+    ln -sfv ../lib/$pkgname/include "$pkgdir"/usr/include/$pkgname
+
+    # symlink cmake dir to system cmake
+    ln -sfv ../$pkgname/lib/cmake/llvm "$pkgdir"/usr/lib/cmake/$pkgname
+}
+
+gtest() {
+    pkgdesc="LLVM $_llvmver gtest static libraries"
+    depends=""
+
+    amove \
+        "$_prefix"/lib/libLLVMTesting*.a \
+        "$_prefix"/lib/libllvm_gtest*.a \
+        "$_prefix"/include/llvm-gmock \
+        "$_prefix"/include/llvm-gtest
+}
+
+
+static() {
+    pkgdesc="LLVM $_llvmver static libraries"
+    depends=""
+
+    amove "$_prefix"/lib/*.a
+}
+
+libs() {
+    pkgdesc="LLVM $_llvmver runtime library"
+    depends=""
+    local soname="libLLVM.so.${pkgver%.*}"
+    local soname2="libLLVM-$_llvmver.so"
+
+    mkdir -p "$subpkgdir"
+    cd "$subpkgdir"
+
+    # libLLVM should be in /usr/lib. This is needed for binaries that are
+    # dynamically linked with libLLVM, so they can find it on default path.
+    mkdir -p "$subpkgdir"/usr/lib
+    mv "$pkgdir"/$_prefix/lib/$soname "$subpkgdir"/usr/lib/
+    ln -s $soname usr/lib/$soname2
+
+    # And also symlink it back to the LLVM prefix.
+    mkdir -p $_prefix/lib
+    ln -s ../../$soname $_prefix/lib/$soname
+    ln -s ../../$soname $_prefix/lib/$soname2
+}
+
+dev() {
+    default_dev
+    cd "$subpkgdir"
+
+    amove \
+        $_prefix/lib \
+        $_prefix/bin/llvm-config
+
+    # also add a suffix-version variant of llvm-config, as that's what things normally check for
+    mkdir -p "$subpkgdir"/usr/bin/
+    ln -sfv ../lib/llvm$_llvmver/bin/llvm-config "$subpkgdir"/usr/bin/llvm-config-$_llvmver
+}
+
+sha512sums="
+70390f6c3d69066ccee0a887b76c5db6cbfa60b0ba1ae4e40d9762f5fb3420f5219ef08c8a656644ff29cb57d1d2642572b5f3f76a6d8106f35c23582e9110e1  qnx-22.1.4_p1.tar.gz
+1135f904d893902ad83703a754a3cb7be772b6c08f66ed73c5b69a263d19eb9e1a13a28d80470e344eb7e0bd9bda2e24dc6291e1f3677ff4a0efb49100f3171c  llvm.clang.cfg
+"
