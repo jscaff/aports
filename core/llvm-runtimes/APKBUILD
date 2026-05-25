@@ -16,7 +16,8 @@ makedepends="python3 sed cmake ninja perl qnx-io-sock-dev liblocale-shim-dev lib
 source="https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-$pkgver.tar.gz
     libcxx.clang.cfg"
 options="!check" # takes too long
-subpackages="compiler-rt:rt libc++:libcxx libc++-dev:libcxx_dev libunwind:libunwind libunwind-dev:libunwind_dev"
+subpackages="compiler-rt:rt libc++:libcxx libc++-dev:libcxx_dev libc++-static:libcxx_static
+    libunwind:libunwind libunwind-dev:libunwind_dev libunwind-static:libunwind_static"
 builddir="$srcdir/llvm-project-qnx-$pkgver"
 
 build() {
@@ -28,7 +29,7 @@ build() {
         die "$CARCH not supported"
     fi
 
-    CC=clang CXX=clang++ CXXFLAGS="--config $srcdir/libcxx.clang.cfg" \
+    CC=clang CXX=clang++ \
     cmake -B build -G Ninja -S runtimes -Wno-dev \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DCMAKE_INSTALL_PREFIX=/usr \
@@ -43,7 +44,9 @@ build() {
         -DCOMPILER_RT_USE_BUILTINS_LIBRARY=OFF \
         -DCOMPILER_RT_BUILD_PROFILE=ON \
         -DCOMPILER_RT_USE_LIBCXX=ON \
-        -DSANITIZER_CXX_ABI=libc++
+        -DSANITIZER_CXX_ABI=libc++ \
+        -DCMAKE_C_FLAGS="-Wl,-l:libcatalog.a -Wl,-l:liblocale.a" \
+        -DCMAKE_CXX_FLAGS="-Wl,-l:libcatalog.a -Wl,-l:liblocale.a"
 
     ninja -C build
 }
@@ -66,6 +69,15 @@ libcxx_dev() {
 
     amove usr/lib/libc++*.so
     amove usr/include/c++
+    amove usr/lib/libc++.modules.json
+    amove usr/share/libc++
+}
+
+libcxx_static() {
+    pkgdesc="LLVM libc++ library (static libraries)"
+    depends=""
+
+    amove usr/lib/libc++*.a
 }
 
 rt() {
@@ -82,9 +94,15 @@ libunwind() {
 
 libunwind_dev() {
     pkgdesc="LLVM libunwind library (development files)"
+    depends="libunwind=$pkgver-r$pkgrel"
 
     amove usr/lib/libunwind.so
     amove usr/include
+}
+
+libunwind_static() {
+    pkgdesc="LLVM libunwind library (development files)"
+    amove usr/lib/libunwind.a
 }
 
 sha512sums="
