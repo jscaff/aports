@@ -1,0 +1,46 @@
+# Maintainer: Leo Shen <yishen@qnx.com>
+pkgname=mlir22
+_patch_rev=1
+pkgver=22.1.4_p$_patch_rev
+pkgrel=0
+pkgdesc="Multi-Level IR Compiler for LLVM"
+arch="all"
+url="https://llvm.org"
+vcs_url="https://github.com/qnx-ports/llvm-project"
+license="Apache-2.0 WITH LLVM-exception"
+options="!check" # fail to build
+_lib_depends="llvm22 llvm22-dev llvm22-gtest llvm22-static"
+depends="llvm22-libs"
+depends_dev="$pkgname=$pkgver-r$pkgrel $_lib_depends"
+makedepends="cmake ninja help2man $_lib_depends"
+subpackages="$pkgname-static $pkgname-dev"
+source="
+    https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-${pkgver}.tar.gz"
+builddir="$srcdir/llvm-project-qnx-${pkgver}"
+_llvmver=${pkgver%%.*}
+
+build() {
+    LDFLAGS="-lsocket" \
+    cmake -B build -S mlir -G Ninja -Wno-dev \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/lib/llvm$_llvmver \
+        -DCMAKE_INSTALL_RPATH=/usr/lib/llvm$_llvmver/lib \
+        -DCMAKE_MODULE_PATH=$builddir/cmake/Modules \
+        -DLLVM_CONFIG=/usr/lib/llvm$_llvmver/bin/llvm-config \
+        \
+    	-DLLVM_LINK_LLVM_DYLIB=ON \
+	-DLLVM_BUILD_LLVM_DYLIB=ON \
+        -DMLIR_LINK_MLIR_DYLIB=ON \
+        -DLLVM_BUILD_TOOLS=ON \
+        -DLLVM_BUILD_UTILS=ON \
+	-DLLVM_ENABLE_PIC=ON
+    cmake --build build
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+70390f6c3d69066ccee0a887b76c5db6cbfa60b0ba1ae4e40d9762f5fb3420f5219ef08c8a656644ff29cb57d1d2642572b5f3f76a6d8106f35c23582e9110e1  qnx-22.1.4_p1.tar.gz
+"
