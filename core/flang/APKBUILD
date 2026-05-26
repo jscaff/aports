@@ -1,0 +1,36 @@
+# Maintainer: Leo Shen <yishen@qnx.com>
+pkgname=flang
+pkgver=22
+pkgrel=0
+pkgdesc="Fortran language frontend for LLVM, default version"
+arch="noarch"
+url="https://flang.llvm.org/"
+license="Apache-2.0"
+subpackages="$pkgname-static"
+options="!check"
+
+_bin="bbc
+    fir-lsp-server
+    fir-opt
+    flang
+    flang-new
+    tco
+"
+
+package() {
+    depends="$pkgname$pkgver"
+    mkdir -p "$pkgdir"/usr/bin
+    local name path
+    for path in $_binaries; do
+        echo "creating symlink for: $path"
+        name=${path##*/}
+        ln -sv ../lib/llvm$pkgver/bin/$name "$pkgdir"/usr/bin/$name
+    done
+}
+
+static() {
+    pkgdesc="Fortran language frontend for LLVM, default version (static libraries)"
+    depends="$pkgname$pkgver-static"
+    mkdir "$subpkgdir"
+}
+
