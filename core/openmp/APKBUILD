@@ -1,0 +1,40 @@
+# Maintainer: Leo Shen <yishen@qnx.com>
+pkgname=openmp
+_patch_rev=1
+pkgver=22.1.4_p$_patch_rev
+pkgrel=0
+pkgdesc="LLVM OpenMP Runtime Library"
+arch="all"
+url="https://llvm.org"
+vcs_url="https://github.com/qnx-ports/llvm-project"
+license="Apache-2.0 WITH LLVM-exception"
+depends="qnx-io-sock libc++"
+_lib_depends="qnx-io-sock-dev libc++-dev"
+depends_dev="$pkgname=$pkgver-r$pkgrel $_lib_depends"
+makedepends="cmake ninja $_lib_depends flang22 flang22-dev flang22-rt python3 python3-dev"
+subpackages="$pkgname-static $pkgname-dev"
+source="
+    https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-${pkgver}.tar.gz"
+builddir="$srcdir/llvm-project-qnx-${pkgver}"
+_llvmver=${pkgver%%.*}
+options="!check"
+
+build() {
+    LDFLAGS="-lsocket" \
+    cmake -B build -S openmp -G Ninja -Wno-dev \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DLIBOMP_ENABLE_FORTRAN=ON \
+	-DLIBOMP_FORTRAN_MODULES=ON \
+    	-DLIBOMP_FORTRAN_MODULES_COMPILER=/usr/lib/llvm22/bin/flang \
+	-DCMAKE_Fortran_COMPILER=/usr/lib/llvm22/bin/flang
+    cmake --build build
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+70390f6c3d69066ccee0a887b76c5db6cbfa60b0ba1ae4e40d9762f5fb3420f5219ef08c8a656644ff29cb57d1d2642572b5f3f76a6d8106f35c23582e9110e1  qnx-22.1.4_p1.tar.gz
+"
