@@ -13,8 +13,7 @@ vcs_url="https://github.com/qnx-ports/llvm-project"
 license="Apache-2.0"
 # libc++-bootstrap is provided by libc++. During initial bootstrap remove -bootstrap and manually install libc++-dev
 makedepends="python3 sed cmake ninja perl qnx-io-sock-dev liblocale-shim-dev libc++-dev"
-source="https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-$pkgver.tar.gz
-    libcxx.clang.cfg"
+source="https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-$pkgver.tar.gz"
 options="!check" # takes too long
 subpackages="compiler-rt:rt libc++:libcxx libc++-dev:libcxx_dev libc++-static:libcxx_static
     libunwind:libunwind libunwind-dev:libunwind_dev libunwind-static:libunwind_static"
@@ -45,8 +44,8 @@ build() {
         -DCOMPILER_RT_BUILD_PROFILE=ON \
         -DCOMPILER_RT_USE_LIBCXX=ON \
         -DSANITIZER_CXX_ABI=libc++ \
-        -DCMAKE_C_FLAGS="-Wl,-l:libcatalog.a -Wl,-l:liblocale.a" \
-        -DCMAKE_CXX_FLAGS="-Wl,-l:libcatalog.a -Wl,-l:liblocale.a"
+        -DCMAKE_C_STANDARD_LIBRARIES="-lcatalog -llocale" \
+        -DCMAKE_CXX_STANDARD_LIBRARIES="-lcatalog -llocale"
 
     ninja -C build
 }
