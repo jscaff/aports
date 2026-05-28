@@ -1,0 +1,28 @@
+Run Vulkan shader compiles synchronously on QNX.
+
+QNX builds already limit vulkan-shaders-gen to one glslc child at a time. The
+upstream generator still routes each compile through std::async, and on QNX the
+future/condition-variable path can stall before glslc is launched. Avoid that
+runtime path entirely on QNX by executing each compile directly after acquiring
+the single compile slot.
+---
+ ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp b/ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp
+index 8290f20..3c23dba 100644
+--- a/ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp
++++ b/ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp
+@@ -1072,8 +1072,12 @@ void string_to_spv(std::string name, const std::string& source, const std::map<s
+     }
+ 
+     compile_count_guard slot = acquire_compile_slot();
++#ifdef __QNX__
++    string_to_spv_func(name, input_filepath, out_path, defines, coopmat, generate_dep_file, std::move(slot));
++#else
+     compiles.push_back(std::async(
+         string_to_spv_func, name, input_filepath, out_path, defines, coopmat, generate_dep_file, std::move(slot)));
++#endif
+     // Don't write the same dep file from multiple processes
+     generate_dep_file = false;
+ }

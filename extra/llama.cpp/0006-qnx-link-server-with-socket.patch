@@ -1,0 +1,18 @@
+QNX keeps socket APIs such as bind() in libsocket, so llama-server needs an
+explicit socket link dependency.
+---
+ tools/server/CMakeLists.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/tools/server/CMakeLists.txt b/tools/server/CMakeLists.txt
+index 56f262d..34aee86 100644
+--- a/tools/server/CMakeLists.txt
++++ b/tools/server/CMakeLists.txt
+@@ -73,3 +73,7 @@ target_link_libraries(${TARGET} PRIVATE server-context PUBLIC llama-common cpp-httplib ${CMAKE_THREAD_LIBS_INIT})
+ target_link_libraries(${TARGET} PRIVATE server-context PUBLIC llama-common cpp-httplib ${CMAKE_THREAD_LIBS_INIT})
+ 
++if (CMAKE_SYSTEM_NAME MATCHES "QNX")
++    target_link_libraries(${TARGET} PRIVATE socket)
++endif()
++
+ target_compile_features(${TARGET} PRIVATE cxx_std_17)

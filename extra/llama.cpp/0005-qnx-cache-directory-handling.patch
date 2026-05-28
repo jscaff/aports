@@ -1,0 +1,36 @@
+QNX has HOME in the target environment and can use the same cache directory
+logic as the Unix platforms. This also fixes the duplicated cache helper in
+the RPC server.
+---
+ common/common.cpp        | 3 ++-
+ tools/rpc/rpc-server.cpp | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/common/common.cpp b/common/common.cpp
+index fa19198..a8fb711 100644
+--- a/common/common.cpp
++++ b/common/common.cpp
+@@ -950,7 +950,8 @@ std::string fs_get_cache_directory() {
+         cache_directory = std::getenv("LLAMA_CACHE");
+     } else {
+ #if defined(__linux__) || defined(__FreeBSD__) || defined(_AIX) || \
+-        defined(__OpenBSD__) || defined(__NetBSD__)
++        defined(__OpenBSD__) || defined(__NetBSD__) || \
++        defined(__QNX__)
+         if (std::getenv("XDG_CACHE_HOME")) {
+             cache_directory = std::getenv("XDG_CACHE_HOME");
+         } else if (std::getenv("HOME")) {
+diff --git a/tools/rpc/rpc-server.cpp b/tools/rpc/rpc-server.cpp
+index e3f71e6..03c2588 100644
+--- a/tools/rpc/rpc-server.cpp
++++ b/tools/rpc/rpc-server.cpp
+@@ -136,7 +136,8 @@ std::string fs_get_cache_directory() {
+         cache_directory = std::getenv("LLAMA_CACHE");
+     } else {
+ #if defined(__linux__) || defined(__FreeBSD__) || defined(_AIX) || \
+-    defined(__OpenBSD__) || defined(__NetBSD__)
++    defined(__OpenBSD__) || defined(__NetBSD__) || \
++    defined(__QNX__)
+         if (std::getenv("XDG_CACHE_HOME")) {
+             cache_directory = std::getenv("XDG_CACHE_HOME");
+         } else if (std::getenv("HOME")) {

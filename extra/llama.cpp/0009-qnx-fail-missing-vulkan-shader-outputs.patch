@@ -1,0 +1,88 @@
+--- a/ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp
++++ b/ggml/src/ggml-vulkan/vulkan-shaders/vulkan-shaders-gen.cpp
+@@ -7,6 +7,7 @@
+ #include <vector>
+ #include <map>
+ #include <thread>
++#include <chrono>
+ #include <mutex>
+ #include <future>
+ #include <queue>
+@@ -311,6 +312,7 @@
+ static uint32_t compile_count = 0;
+ static std::mutex compile_count_mutex;
+ static std::condition_variable compile_count_cond;
++static bool compile_failed = false;
+ static bool generate_dep_file = true;
+ 
+ void decrement_compile_count(uint32_t * count) {
+@@ -334,6 +336,11 @@
+     return compile_count_guard(&compile_count, &decrement_compile_count);
+ }
+ 
++void mark_compile_failed() {
++    std::lock_guard<std::mutex> guard(lock);
++    compile_failed = true;
++}
++
+ void string_to_spv_func(std::string name, std::string in_path, std::string out_path, std::map<std::string, std::string> defines, bool coopmat, bool dep_file, compile_count_guard slot) {
+     std::string target_env = (name.find("_cm2") != std::string::npos) ? "--target-env=vulkan1.3" : "--target-env=vulkan1.2";
+ 
+@@ -388,6 +395,38 @@
+                 std::cerr << part << " ";
+             }
+             std::cerr << "\n\n" << stderr_str << std::endl;
++            mark_compile_failed();
++            std::exit(EXIT_FAILURE);
++            return;
++        }
++
++        std::string spv = read_binary_file(out_path, true);
++        if (spv.empty()) {
++            constexpr int max_attempts = 100;
++            for (int attempt = 1; attempt <= max_attempts && spv.empty(); ++attempt) {
++                std::this_thread::sleep_for(std::chrono::milliseconds(20));
++                spv = read_binary_file(out_path, true);
++                if (!spv.empty()) {
++                    std::cerr << "shader output appeared after retry " << attempt << ": "
++                              << out_path << "\n";
++                }
++            }
++        }
++
++        if (spv.empty()) {
++            std::cerr << "cannot compile " << name << "\n\n";
++            for (const auto& part : cmd) {
++                std::cerr << part << " ";
++            }
++            std::cerr << "\n\nmissing shader output: " << out_path << "\n";
++            if (!stdout_str.empty()) {
++                std::cerr << "\nstdout:\n" << stdout_str << "\n";
++            }
++            if (!stderr_str.empty()) {
++                std::cerr << "\nstderr:\n" << stderr_str << "\n";
++            }
++            mark_compile_failed();
++            std::exit(EXIT_FAILURE);
+             return;
+         }
+ 
+@@ -407,6 +446,8 @@
+         shader_fnames.push_back(std::make_pair(name, out_path));
+     } catch (const std::exception& e) {
+         std::cerr << "Error executing command for " << name << ": " << e.what() << std::endl;
++        mark_compile_failed();
++        std::exit(EXIT_FAILURE);
+     }
+ }
+ 
+@@ -1038,6 +1079,9 @@
+     for (auto &c : compiles) {
+         c.wait();
+     }
++    if (compile_failed) {
++        throw std::runtime_error("one or more Vulkan shader compiles failed");
++    }
+ }
+ 
+ void write_output_files() {

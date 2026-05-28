@@ -1,0 +1,108 @@
+Captured from the yulee-qnx/llama.cpp qnx-llama.cpp branch.
+---
+ common/arg.cpp                 |  3 +++
+ common/common.cpp              |  7 +++++++
+ common/download.cpp            |  6 +++++-
+ ggml/src/ggml-cpu/ggml-cpu.cpp | 11 ++++++++++-
+ qnx.toolchain.cmake            | 16 ++++++++++++++++
+ 5 files changed, 41 insertions(+), 2 deletions(-)
+
+diff --git a/common/arg.cpp b/common/arg.cpp
+index 85d84e5..0df2f7a 100644
+--- a/common/arg.cpp
++++ b/common/arg.cpp
+@@ -45,8 +45,11 @@
+ #elif defined(_AIX)
+ #include <sys/limits.h>
+ #else
++#if !defined(__QNX__)
+ #include <sys/syslimits.h>
+ #endif
++#include <limits.h>
++#endif
+ #endif
+ 
+ #define LLAMA_MAX_URL_LENGTH 2084 // Maximum URL Length in Chrome: 2083
+diff --git a/common/common.cpp b/common/common.cpp
+index f7f33e8..fa19198 100644
+--- a/common/common.cpp
++++ b/common/common.cpp
+@@ -975,7 +975,14 @@ std::string fs_get_cache_directory() {
+ #elif defined(__EMSCRIPTEN__)
+         GGML_ABORT("not implemented on this platform");
+ #else
++#if defined(__x86_64__) || defined(__i386__) || defined(__i486__) || defined(__QNXNTO__) && defined(__x86_64__)
++    return "x86";
++#elif defined(__arm__) || defined(__aarch64__) || defined(__QNXNTO__) && defined(__aarch64__)
++    return "arm";
++#else
+ #  error Unknown architecture
++#endif
++
+ #endif
+         cache_directory = ensure_trailing_slash(cache_directory);
+         cache_directory += "llama.cpp";
+diff --git a/common/download.cpp b/common/download.cpp
+index c4bb02d..690cbcc 100644
+--- a/common/download.cpp
++++ b/common/download.cpp
+@@ -33,7 +33,11 @@
+ #elif defined(_AIX)
+ #include <sys/limits.h>
+ #else
+-#include <sys/syslimits.h>
++#if defined(__QNX__)
++  #include <limits.h>
++#else
++  #include <sys/syslimits.h>
++#endif
+ #endif
+ #endif
+ 
+diff --git a/ggml/src/ggml-cpu/ggml-cpu.cpp b/ggml/src/ggml-cpu/ggml-cpu.cpp
+index 49f840b..c318736 100644
+--- a/ggml/src/ggml-cpu/ggml-cpu.cpp
++++ b/ggml/src/ggml-cpu/ggml-cpu.cpp
+@@ -369,10 +369,19 @@ static void ggml_backend_cpu_device_get_memory(ggml_backend_dev_t dev, size_t *
+     GlobalMemoryStatusEx(&status);
+     *total = status.ullTotalPhys;
+     *free = status.ullAvailPhys;
++#else
++    #if defined(__QNX__)
++    // QNX does not support _SC_PHYS_PAGES.
++    // We use 0 as a fallback, or you can use QNX-specific storage stats.
++    long pages = 0;
++    long page_size = sysconf(_SC_PAGESIZE);
+ #else
+     long pages = sysconf(_SC_PHYS_PAGES);
+     long page_size = sysconf(_SC_PAGE_SIZE);
+-    *total = pages * page_size;
++#endif
++    if (total != NULL) {
++        *total = (size_t)pages * page_size;
++    }
+ 
+     // "free" system memory is ill-defined, for practical purposes assume that all of it is free:
+     *free = *total;
+diff --git a/qnx.toolchain.cmake b/qnx.toolchain.cmake
+new file mode 100644
+index 0000000..9301c78
+--- /dev/null
++++ b/qnx.toolchain.cmake
+@@ -0,0 +1,16 @@
++set(CMAKE_SYSTEM_NAME QNX)
++set(CMAKE_SYSTEM_PROCESSOR x86_64)
++
++# Set the path to the SDP
++set(QNX_TARGET $ENV{QNX_TARGET})
++set(QNX_HOST $ENV{QNX_HOST})
++
++# Explicitly point to the x86_64 sysroot
++set(CMAKE_SYSROOT ${QNX_TARGET}/x86_64)
++
++# Force the compiler to use the QNX x86_64 configuration
++set(CMAKE_C_FLAGS "${QNX_FLAGS}" CACHE STRING "Flags for QNX" FORCE)
++set(CMAKE_CXX_FLAGS "${QNX_FLAGS}" CACHE STRING "Flags for QNX" FORCE)
++
++set(CMAKE_C_COMPILER ${QNX_HOST}/usr/bin/x86_64-pc-nto-qnx8.0.0-gcc)
++set(CMAKE_CXX_COMPILER ${QNX_HOST}/usr/bin/x86_64-pc-nto-qnx8.0.0-g++)
