@@ -12,7 +12,7 @@ url="https://llvm.org/"
 vcs_url="https://github.com/qnx-ports/llvm-project"
 license="Apache-2.0"
 # libc++-bootstrap is provided by libc++. During initial bootstrap remove -bootstrap and manually install libc++-dev
-makedepends="python3 sed cmake ninja perl qnx-io-sock-dev liblocale-shim-dev libc++-dev"
+makedepends="python3 sed cmake ninja perl qnx-io-sock-dev liblocale-shim-dev libc++-dev-bootstrap"
 source="https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-$pkgver.tar.gz"
 options="!check" # takes too long
 subpackages="compiler-rt:rt libc++:libcxx libc++-dev:libcxx_dev libc++-static:libcxx_static
@@ -106,5 +106,4 @@ libunwind_static() {
 
 sha512sums="
 70390f6c3d69066ccee0a887b76c5db6cbfa60b0ba1ae4e40d9762f5fb3420f5219ef08c8a656644ff29cb57d1d2642572b5f3f76a6d8106f35c23582e9110e1  qnx-22.1.4_p1.tar.gz
-103ffbb207e88a0994f74b7397f9a2d7cba7c871c9f6d629c7c43ca068ae92dbe83b58c525c49907c3b1b416284cd4d4fe5d42f2974868e9bf436d32c47dbb87  libcxx.clang.cfg
 "
