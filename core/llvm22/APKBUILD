@@ -1,16 +1,17 @@
 # Maintainer: Felix Xing <fxing@qnx.com>
 pkgname=llvm22
-pkgver=22.1.4
+pkgver=22.1.7
 pkgrel=0
-_patch_rev=1
+_patch_rev=0
 pkgdesc="Low Level Virtual Machine compiler system."
 arch="all"
 url="https://llvm.org/"
 license="Apache-2.0"
 depends_libs="qnx-io-sock libc++ libffi libunwind libxml2 zlib-ng zstd-libs libcurl"
-depends_dev="libc++-dev libffi-dev libunwind-dev libxml2-dev zlib-ng-dev zstd-dev curl-dev qnx-io-sock-dev"
-depends="qnx-gcc binutils $depends_libs"
-makedepends="python3 sed cmake ninja perl compiler-rt $depends_dev"
+depends_dev="$depends_libs libc++-dev libffi-dev libunwind-dev libxml2-dev zlib-ng-dev zstd-dev curl-dev qnx-io-sock-dev"
+depends="$depends_libs qnx-gcc binutils"
+# the python3* makedepends are optional. remove them and corresponding llvm-lit build during bootstrap
+makedepends="python3 python3-build python3-pyproject-hooks python3-packaging python3-setuptools python3-installer sed cmake ninja perl compiler-rt $depends_dev"
 source="
     https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-${pkgver}_p${_patch_rev}.tar.gz
     llvm.clang.cfg"
@@ -30,7 +31,7 @@ build() {
         die "$CARCH not supported"
     fi
 
-    CFLAGS="-fPIC" CXXFLAGS="-fPIC" LDFLAGS="-lsocket" \
+    CFLAGS="-fPIC" CXXFLAGS="-fPIC" LDFLAGS="-lsocket -z stack-size=8388608" \
     cmake -B build -S llvm -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/"$_prefix" \
@@ -48,7 +49,7 @@ build() {
         -DLLVM_APPEND_VC_REV=OFF \
         -DLLVM_BUILD_DOCS=ON \
         -DLLVM_BUILD_EXAMPLES=OFF \
-        -DLLVM_BUILD_TESTS=OFF \
+        -DLLVM_BUILD_TESTS=ON \
         -DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON \
         \
         -DLLVM_ENABLE_EH=OFF \
@@ -62,10 +63,14 @@ build() {
         -DLLVM_ENABLE_ZSTD=FORCE_ON
 
     ninja -C build
+
+    # Build lit for running test suites of other LLVM components (clang, etc)
+    cd $builddir/llvm/utils/lit
+    python -m build --wheel --no-isolation
 }
 
 package() {
-    depends="$pkgname-libs=$pkgver-r$pkgrel"
+    depends="$depends $pkgname-libs=$pkgver-r$pkgrel"
 
     # install LLVM
     DESTDIR="$pkgdir" ninja -C build install
@@ -118,7 +123,6 @@ static() {
 
 libs() {
     pkgdesc="LLVM $_llvmver runtime library"
-    depends=""
     local soname="libLLVM.so.${pkgver%.*}"
     local soname2="libLLVM-$_llvmver.so"
 
@@ -148,9 +152,13 @@ dev() {
     # also add a suffix-version variant of llvm-config, as that's what things normally check for
     mkdir -p "$subpkgdir"/usr/bin/
     ln -sfv ../lib/llvm$_llvmver/bin/llvm-config "$subpkgdir"/usr/bin/llvm-config-$_llvmver
+
+    # lit for LLVM testings
+    cd $builddir/llvm/utils/lit
+    python -m installer --destdir="$subpkgdir" dist/*.whl
 }
 
 sha512sums="
-70390f6c3d69066ccee0a887b76c5db6cbfa60b0ba1ae4e40d9762f5fb3420f5219ef08c8a656644ff29cb57d1d2642572b5f3f76a6d8106f35c23582e9110e1  qnx-22.1.4_p1.tar.gz
+57ca6a1ada7e8452279c6b7ef80a60382d80a896b903b1fa7fed787ecafca402d7d8124d8e7e2165068924b4fce1c385f8a4bf5ebf032051bb72f521c82f8c80  qnx-22.1.7_p0.tar.gz
 1135f904d893902ad83703a754a3cb7be772b6c08f66ed73c5b69a263d19eb9e1a13a28d80470e344eb7e0bd9bda2e24dc6291e1f3677ff4a0efb49100f3171c  llvm.clang.cfg
 "
