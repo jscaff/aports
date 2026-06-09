@@ -1,8 +1,8 @@
 # Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=llvm-runtimes
-_llvm_ver=22.1.4
+_llvm_ver=22.1.7
 _llvm_major=${_llvm_ver%%.*}
-_patch_ver=1
+_patch_ver=0
 pkgver=${_llvm_ver}_p${_patch_ver}
 pkgrel=0
 _patch_rev=0
@@ -12,7 +12,7 @@ url="https://llvm.org/"
 vcs_url="https://github.com/qnx-ports/llvm-project"
 license="Apache-2.0"
 # libc++-bootstrap is provided by libc++. During initial bootstrap remove -bootstrap and manually install libc++-dev
-makedepends="python3 sed cmake ninja perl qnx-io-sock-dev liblocale-shim-dev libc++-dev-bootstrap"
+makedepends="python3 sed cmake ninja perl qnx-io-sock-dev liblocale-shim-dev libc++-dev"
 source="https://github.com/qnx-ports/llvm-project/archive/refs/tags/qnx-$pkgver.tar.gz"
 options="!check" # takes too long
 subpackages="compiler-rt:rt libc++:libcxx libc++-dev:libcxx_dev libc++-static:libcxx_static
@@ -105,5 +105,5 @@ libunwind_static() {
 }
 
 sha512sums="
-70390f6c3d69066ccee0a887b76c5db6cbfa60b0ba1ae4e40d9762f5fb3420f5219ef08c8a656644ff29cb57d1d2642572b5f3f76a6d8106f35c23582e9110e1  qnx-22.1.4_p1.tar.gz
+57ca6a1ada7e8452279c6b7ef80a60382d80a896b903b1fa7fed787ecafca402d7d8124d8e7e2165068924b4fce1c385f8a4bf5ebf032051bb72f521c82f8c80  qnx-22.1.7_p0.tar.gz
 "
