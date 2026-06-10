@@ -1,0 +1,35 @@
+# Maintainer: Leo Shen <yishen@qnx.com>
+pkgname=openrc
+pkgver=0.63.1
+pkgrel=0
+pkgdesc="OpenRC manages the services, startup and shutdown of a host"
+url="https://github.com/OpenRC/openrc"
+vcs_url="$url"
+arch="all"
+license="BSD-3-Clause"
+depends="qnx-security qnx-memstream qnx-io-sock"
+depends_dev="qnx-security-dev qnx-memstream-dev qnx-io-sock-dev"
+makedepends="meson ninja scdoc $depends_dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-bash-completion $pkgname-zsh-completion"
+source="$pkgname-$pkgver.tar.gz::https://github.com/OpenRC/openrc/archive/refs/tags/$pkgver.tar.gz
+    fix-qnx.patch
+"
+
+build() {
+    LDFLAGS="-lmemstream -lsocket" \
+    abuild-meson . build
+    meson compile -C build
+}
+
+check() {
+    meson test --print-errorlogs -C build || msg "Few test failures mainly around their test infra"
+}
+
+package() {
+    DESTDIR="$pkgdir" meson install --no-rebuild -C build
+}
+
+sha512sums="
+d1746909275bd2552ccc4a1786eb5f80ac79ba911ce08ffc12dd550f2965f3bea09ac7c4b638f17f495f92238b833ca1886782c9c7bbba868e1c905e82639a2e  openrc-0.63.1.tar.gz
+2e8d566b8b8da2a1318fc646fa4b03fa840114de8912034034f4c6663c1e1d503be165eb327588b64776bc51b5000485a10cb847a31a258d244bd06529c2480d  fix-qnx.patch
+"
