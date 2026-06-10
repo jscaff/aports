@@ -1,6 +1,7 @@
---- openssh-10.0p1.orig/includes.h	2025-08-01 14:34:27.000000000 +0000
-+++ openssh-10.0p1/includes.h	2025-08-01 15:00:23.000000000 +0000
-@@ -62,6 +62,9 @@
+diff -Naur openssh-10.3p1.orig/includes.h openssh-10.3p1/includes.h
+--- openssh-10.3p1.orig/includes.h	2026-06-10 21:19:48.000000000 +0000
++++ openssh-10.3p1/includes.h	2026-06-10 21:20:34.000000000 +0000
+@@ -65,6 +65,9 @@
  #ifdef HAVE_LOGIN_H
  # include <login.h>
  #endif
@@ -10,8 +11,20 @@
  
  #ifdef HAVE_UTMP_H
  #  include <utmp.h>
---- openssh-10.0p1.orig/openbsd-compat/openbsd-compat.h	2025-08-01 14:34:27.000000000 +0000
-+++ openssh-10.0p1/openbsd-compat/openbsd-compat.h	2025-08-01 15:00:23.000000000 +0000
+@@ -173,6 +176,10 @@
+ #include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
+ #endif
+ 
++#ifdef __QNX__
++# include <unix.h>
++#endif
++
+ #include "defines.h"
+ 
+ #include "platform.h"
+diff -Naur openssh-10.3p1.orig/openbsd-compat/openbsd-compat.h openssh-10.3p1/openbsd-compat/openbsd-compat.h
+--- openssh-10.3p1.orig/openbsd-compat/openbsd-compat.h	2026-06-10 21:19:48.000000000 +0000
++++ openssh-10.3p1/openbsd-compat/openbsd-compat.h	2026-06-10 21:19:57.000000000 +0000
 @@ -107,7 +107,7 @@
  #endif
  
@@ -21,8 +34,9 @@
  #endif
  
  #ifndef HAVE_STRLCPY
---- openssh-10.0p1.orig/openbsd-compat/rresvport.c	2025-08-01 14:34:27.000000000 +0000
-+++ openssh-10.0p1/openbsd-compat/rresvport.c	2025-08-01 15:00:23.000000000 +0000
+diff -Naur openssh-10.3p1.orig/openbsd-compat/rresvport.c openssh-10.3p1/openbsd-compat/rresvport.c
+--- openssh-10.3p1.orig/openbsd-compat/rresvport.c	2026-06-10 21:19:48.000000000 +0000
++++ openssh-10.3p1/openbsd-compat/rresvport.c	2026-06-10 21:19:57.000000000 +0000
 @@ -55,7 +55,7 @@
  #endif
  
