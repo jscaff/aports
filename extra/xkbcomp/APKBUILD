@@ -7,16 +7,10 @@ pkgdesc="XKBD keymap compiler"
 url="https://xorg.freedesktop.org"
 arch="all"
 license="MIT"
+depends="libxkbfile libx11"
 makedepends="libx11-dev libxkbfile-dev util-macros"
 subpackages="$pkgname-dev $pkgname-doc"
 source="https://www.x.org/releases/individual/app/xkbcomp-$pkgver.tar.xz"
-
-# secfixes:
-#   1.5.0-r0:
-#     - CVE-2018-15853
-#     - CVE-2018-15859
-#     - CVE-2018-15861
-#     - CVE-2018-15863
 
 build() {
 	./configure \
