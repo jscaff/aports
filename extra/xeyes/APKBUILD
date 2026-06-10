@@ -17,7 +17,7 @@ makedepends="
 	libxrender-dev
 	libxt-dev
 	"
-depends="libxi libxt libxrender"
+depends="libxi libxt libxrender libxmu"
 subpackages="$pkgname-doc"
 source="https://www.x.org/releases/individual/app/xeyes-$pkgver.tar.xz"
 
