@@ -141,6 +141,7 @@ clients() {
 
 xwayland() {
 	pkgdesc="Wayland module to run X Clients"
+    depends="libxfixes libxrender libxcursor weston"
 	mkdir -p "$subpkgdir"/usr/lib/$_libdir
 	mv "$pkgdir"/usr/lib/$_libdir/xwayland.so \
 		"$subpkgdir"/usr/lib/$_libdir
