@@ -15,8 +15,9 @@ makedepends="
 	xorgproto
 	xtrans
 	zlib-dev
+    ncurses-dev
 	"
-depends="freetype zlib libfontenc"
+depends="freetype zlib libfontenc ncurses"
 depends_dev="$depends xorgproto"
 subpackages="$pkgname-dev"
 source="
@@ -24,10 +25,6 @@ source="
     build-qnx.patch
 "
 builddir="$srcdir/libXfont2-$pkgver"
-
-# secfixes:
-#   2.0.3-r0:
-#     - CVE-2017-16611
 
 build() {
 	./configure \
