@@ -30,6 +30,7 @@ depends="
     pixman
     glib
 	zlib-ng
+    libsysv-ipc-shim
 "
 
 subpackages="
