@@ -1,53 +1,79 @@
-diff --git a/libfakeroot.c b/libfakeroot.c
-index ce3b42a..08a3ea0 100644
---- a/libfakeroot.c
-+++ b/libfakeroot.c
-@@ -835,6 +835,10 @@ int chown(const char *path, uid_t owner, gid_t group){
-   INT_STRUCT_STAT st;
-   int r=0;
- 
-+  if(owner == 0 || group == 0)
-+  {
-+    return 0;
+--- fakeroot-1.37.1.1.orig/libfakeroot.c
++++ fakeroot-1.37.1.1/libfakeroot.c
+@@ -859,8 +859,19 @@
+     r=next_lchown(path,owner,group);
+   else
+     r=0;
++#ifdef __QNX__
++  // QNX bug that chown will return EACCES instead of EPERM on permission failure
++  if(r&&(errno==EACCES)){
++    // check if its really EACCESS
++    if (faccessat(AT_FDCWD, path, F_OK, 0) == EOK)
++      r=0;
++    else
++      errno=EACCES;
 +  }
- 
- #ifdef LIBFAKEROOT_DEBUGGING
-   if (fakeroot_debug) {
-@@ -871,6 +875,11 @@ int lchown(const char *path, uid_t owner, gid_t group){
-   INT_STRUCT_STAT st;
-   int r=0;
- 
-+  if(owner == 0 || group == 0)
-+  {
-+    return 0;
-+  }
-+
- #ifdef LIBFAKEROOT_DEBUGGING
-   if (fakeroot_debug) {
-     fprintf(stderr, "lchown path %s owner %d group %d\n", path, owner, group);
-@@ -897,6 +906,11 @@ int fchown(int fd, uid_t owner, gid_t group){
-   INT_STRUCT_STAT st;
-   int r;
- 
-+  if(owner == 0 || group == 0)
-+  {
-+    return 0;
-+  }
-+
-   r=INT_NEXT_FSTAT(fd, &st);
-   if(r)
-     return r;
-@@ -923,6 +937,12 @@ int fchownat(int dir_fd, const char *path, uid_t owner, gid_t group, int flags)
-   /* If AT_SYMLINK_NOFOLLOW is set in the fchownat call it should
-      be when we stat it. */
-   INT_STRUCT_STAT st;
-+
-+  if(owner == 0 || group == 0)
-+  {
-+    return 0;
-+  }
-+
-   r=INT_NEXT_FSTATAT(dir_fd, path, &st, (flags & (AT_SYMLINK_NOFOLLOW | AT_EMPTY_PATH | AT_NO_AUTOMOUNT)));
- 
-   if(r)
++#else
+   if(r&&(errno==EPERM))
+     r=0;
++#endif
 
+   return r;
+ }
+@@ -886,8 +897,19 @@
+     r=next_lchown(path,owner,group);
+   else
+     r=0;
++#ifdef __QNX__
++  // QNX bug that lchown will return EACCES instead of EPERM on permission failure
++  if(r&&(errno==EACCES)) {
++    // check if its really EACCESS
++    if (faccessat(AT_FDCWD,path, F_OK, AT_SYMLINK_NOFOLLOW) == EOK)
++      r=0;
++    else
++      errno=EACCES;
++  }
++#else
+   if(r&&(errno==EPERM))
+     r=0;
++#endif
+
+   return r;
+ }
+@@ -909,9 +931,15 @@
+     r=next_fchown(fd,owner,group);
+   else
+     r=0;
+-
++#ifdef __QNX__
++  // QNX bug that fchown will return EACCES instead of EPERM on permission failure
++  // we dont need a extra check since we already have a FD
++  if(r&&(errno==EACCES))
++      r=0;
++#else
+   if(r&&(errno==EPERM))
+     r=0;
++#endif
+
+   return r;
+ }
+@@ -937,8 +965,19 @@
+   else
+     r=0;
+
++#ifdef __QNX__
++  // QNX bug that fchownat will return EACCES instead of EPERM on permission failure
++  if(r&&(errno==EACCES)) {
++    // check if its really EACCESS
++    if (faccessat(dir_fd, path, F_OK, flags) == EOK)
++      r=0;
++    else
++      errno=EACCES;
++  }
++#else
+   if(r&&(errno==EPERM))
+     r=0;
++#endif
+
+   return r;
+ }

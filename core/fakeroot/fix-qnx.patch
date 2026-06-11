@@ -1,7 +1,6 @@
-diff --git a/communicate.c b/communicate.c
-index 292699d..dd32fac 100644
---- a/communicate.c
-+++ b/communicate.c
+diff -Naur fakeroot-1.38.1.orig/communicate.c fakeroot-1.38.1/communicate.c
+--- fakeroot-1.38.1.orig/communicate.c	2026-06-11 15:33:54.000000000 +0000
++++ fakeroot-1.38.1/communicate.c	2026-06-11 15:34:04.000000000 +0000
 @@ -32,6 +32,9 @@
  # endif
  #endif
@@ -12,10 +11,9 @@ index 292699d..dd32fac 100644
  #include "communicate.h"
  #include <dlfcn.h>
  #include <stdio.h>
-diff --git a/faked.c b/faked.c
-index d6e1b50..9bac8b5 100644
---- a/faked.c
-+++ b/faked.c
+diff -Naur fakeroot-1.38.1.orig/faked.c fakeroot-1.38.1/faked.c
+--- fakeroot-1.38.1.orig/faked.c	2026-06-11 15:33:54.000000000 +0000
++++ fakeroot-1.38.1/faked.c	2026-06-11 15:34:05.000000000 +0000
 @@ -103,6 +103,7 @@
  #else /* FAKEROOT_FAKENET */
  # include <sys/socket.h>
@@ -24,7 +22,7 @@ index d6e1b50..9bac8b5 100644
  # include <netinet/in.h>
  # include <netinet/tcp.h>
  # include <arpa/inet.h>
-@@ -1172,7 +1173,7 @@ void get_msg(const int listen_sd)
+@@ -1163,7 +1164,7 @@
        const int sd = sd_list_index(i);
  
        FD_SET(sd, &readfds);
@@ -33,11 +31,10 @@ index d6e1b50..9bac8b5 100644
      }
  
      count = select(maxfd + 1, &readfds, NULL, NULL, NULL);
-diff --git a/libfakeroot.c b/libfakeroot.c
-index e7b1e7c..ce3b42a 100644
---- a/libfakeroot.c
-+++ b/libfakeroot.c
-@@ -1127,7 +1127,7 @@ int WRAP_MKNOD MKNOD_ARG(int ver UNUSED,
+diff -Naur fakeroot-1.38.1.orig/libfakeroot.c fakeroot-1.38.1/libfakeroot.c
+--- fakeroot-1.38.1.orig/libfakeroot.c	2026-06-11 15:33:54.000000000 +0000
++++ fakeroot-1.38.1/libfakeroot.c	2026-06-11 15:34:05.000000000 +0000
+@@ -1130,7 +1130,7 @@
  }
  
  #ifdef HAVE_FSTATAT
@@ -46,7 +43,7 @@ index e7b1e7c..ce3b42a 100644
  int WRAP_MKNODAT MKNODAT_ARG(int ver UNUSED,
  			     int dir_fd,
  			     const char *pathname,
-@@ -1505,12 +1505,6 @@ pid_t fork(void)
+@@ -1508,12 +1508,6 @@
    return pid;
  }
  
@@ -59,3 +56,15 @@ index e7b1e7c..ce3b42a 100644
  /* Return an error when trying to close the comm_sd file descriptor
     (pretend that it's closed). */
  int close(int fd)
+diff -Naur fakeroot-1.38.1.orig/message.h fakeroot-1.38.1/message.h
+--- fakeroot-1.38.1.orig/message.h	2026-06-11 15:33:54.000000000 +0000
++++ fakeroot-1.38.1/message.h	2026-06-11 15:34:35.000000000 +0000
+@@ -30,6 +30,8 @@
+ # include <endian.h>
+ #elif defined(HAVE_MACHINE_ENDIAN_H)
+ # include <machine/endian.h>
++#elif defined(__QNX__)
++# include <sys/param.h>
+ #else
+ # error No endian header
+ #endif
