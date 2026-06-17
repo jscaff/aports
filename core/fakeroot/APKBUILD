@@ -1,7 +1,7 @@
 # Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=fakeroot
 pkgver=1.38.1
-pkgrel=0
+pkgrel=1
 pkgdesc="Tool for simulating superuser privileges"
 url="https://packages.debian.org/fakeroot"
 arch="all"
@@ -35,5 +35,5 @@ package() {
 sha512sums="
 8750191114636bf707b9c9c56ffe55d6471fac062ca3d811eaedda5459996299df5f77f34ac8c7084ed734c03c15c846bb25e5929abaad2b747f8f12719cdbf5  fakeroot_1.38.1.orig.tar.gz
 2c042ad7dffa2d96d2782b5a9315f4a5785f92aedef107287683c23f0ad076e1092f57f39ad5f78fdbab7666be8575aa9cd9ef798cca7d45308acc504ca84e6b  fix-qnx.patch
-07c6bca3ec9dd6115cf37e42384ef4cb68c7eb8e7775e578544d86edac9fe5a9203671897fc18f613f55a8e4c75f1982065787d7599ac375274a88868ca3973f  fix-chown.patch
+62f8bfacaad7d8cc5ee3fce00cb440d00c14f080b9f49fa762b42a2634d4935c61744aa9d06b9faf121af57a32c06b36eb56e255678c7606c899eee35a0b6ac9  fix-chown.patch
 "

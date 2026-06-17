@@ -1,6 +1,6 @@
---- fakeroot-1.37.1.1.orig/libfakeroot.c
-+++ fakeroot-1.37.1.1/libfakeroot.c
-@@ -859,8 +859,19 @@
+--- fakeroot-1.38.1.orig/libfakeroot.c	2026-06-18 01:28:53.000000000 +0000
++++ fakeroot-1.38.1/libfakeroot.c	2026-06-18 01:33:30.000000000 +0000
+@@ -862,8 +862,20 @@
      r=next_lchown(path,owner,group);
    else
      r=0;
@@ -8,10 +8,11 @@
 +  // QNX bug that chown will return EACCES instead of EPERM on permission failure
 +  if(r&&(errno==EACCES)){
 +    // check if its really EACCESS
-+    if (faccessat(AT_FDCWD, path, F_OK, 0) == EOK)
++    if (faccessat(AT_FDCWD, path, F_OK, 0) == EOK) {
 +      r=0;
-+    else
++    } else {
 +      errno=EACCES;
++   }
 +  }
 +#else
    if(r&&(errno==EPERM))
@@ -20,18 +21,20 @@
 
    return r;
  }
-@@ -886,8 +897,19 @@
+@@ -889,8 +901,21 @@
      r=next_lchown(path,owner,group);
    else
      r=0;
 +#ifdef __QNX__
 +  // QNX bug that lchown will return EACCES instead of EPERM on permission failure
 +  if(r&&(errno==EACCES)) {
++    struct stat statbuf;
 +    // check if its really EACCESS
-+    if (faccessat(AT_FDCWD,path, F_OK, AT_SYMLINK_NOFOLLOW) == EOK)
++    if (fstatat(AT_FDCWD, path, &statbuf, AT_SYMLINK_NOFOLLOW) == EOK) {
 +      r=0;
-+    else
++    } else {
 +      errno=EACCES;
++    }
 +  }
 +#else
    if(r&&(errno==EPERM))
@@ -40,7 +43,7 @@
 
    return r;
  }
-@@ -909,9 +931,15 @@
+@@ -912,9 +937,15 @@
      r=next_fchown(fd,owner,group);
    else
      r=0;
@@ -57,18 +60,20 @@
 
    return r;
  }
-@@ -937,8 +965,19 @@
+@@ -940,8 +971,21 @@
    else
      r=0;
 
 +#ifdef __QNX__
 +  // QNX bug that fchownat will return EACCES instead of EPERM on permission failure
 +  if(r&&(errno==EACCES)) {
++    struct stat statbuf;
 +    // check if its really EACCESS
-+    if (faccessat(dir_fd, path, F_OK, flags) == EOK)
++    if (fstatat(dir_fd, path, &statbuf, AT_SYMLINK_NOFOLLOW) == EOK) {
 +      r=0;
-+    else
++    } else {
 +      errno=EACCES;
++    }
 +  }
 +#else
    if(r&&(errno==EPERM))
