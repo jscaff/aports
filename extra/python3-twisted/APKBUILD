@@ -2,7 +2,7 @@
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=python3-twisted
 pkgver=25.5.0
-pkgrel=0
+pkgrel=1
 pkgdesc="Asynchronous networking framework written in Python3"
 url="https://twistedmatrix.com/"
 arch="noarch"
@@ -33,7 +33,8 @@ makedepends="
 checkdepends="xvfb-run python3-appdirs tzdata python3-asn1 python3-bcrypt"
 subpackages="$pkgname-doc $pkgname-tests"
 source="https://github.com/twisted/twisted/archive/twisted-$pkgver.tar.gz
-	hanging-test.patch
+     0001-hanging-test.patch
+     0002-qnx-signals.patch
 	"
 builddir="$srcdir"/twisted-twisted-$pkgver
 options="!check" # bunch of random failures
@@ -80,9 +81,10 @@ doc() {
 	default_doc
 }
 
+
+
 sha512sums="
 2cc54ace787b986a1682a500e41b64f2c17cc1c608b054e64ad932f6bf42ec19979cbdc3a6121e879e1b1d4578ea1f4a66b992489ee00a3a85e601d0f29b711a  twisted-25.5.0.tar.gz
-523a4d89343cc2c9914e15fdfd25b9f89c9bee2a00d6b10c808ad4af4dd46689f5f0ebe529bd2ba4855dc7d80192e79f829192bc9171a5b2ae13dc04a181e352  hanging-test.patch
+523a4d89343cc2c9914e15fdfd25b9f89c9bee2a00d6b10c808ad4af4dd46689f5f0ebe529bd2ba4855dc7d80192e79f829192bc9171a5b2ae13dc04a181e352  0001-hanging-test.patch
+b6db98a28cfef2eab03d3ae34e607251798de6ca35c01d547815c4d5b31f272dd570fd081f6350a7ee786d162c4e97e649daaa44c6587224ab957da4077cb3f2  0002-qnx-signals.patch
 "
-
-

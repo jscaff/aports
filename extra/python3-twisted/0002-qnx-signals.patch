@@ -1,0 +1,14 @@
+--- a/src/twisted/internet/_signals.py
++++ b/src/twisted/internet/_signals.py
+@@ -78,7 +78,10 @@ def installHandler(fd: int) -> int:
+             pass
+ 
+         signal.signal(signal.SIGCHLD, noopSignalHandler)
+-        signal.siginterrupt(signal.SIGCHLD, False)
++        # siginterrupt is deprecated and unsupported on QNX. You should be using sigaction with SA_RESTART
++        # SA_RESTART is also not supported by QNX :(
++        if os.uname().sysname != "QNX":
++            signal.siginterrupt(signal.SIGCHLD, False)
+     return signal.set_wakeup_fd(fd)
+ 
+ 
