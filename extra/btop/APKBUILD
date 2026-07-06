@@ -3,7 +3,7 @@
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=btop
 pkgver=1.4.6
-pkgrel=2
+pkgrel=0
 pkgdesc="Resource monitor"
 url="https://github.com/aristocratos/btop"
 license="Apache-2.0"
