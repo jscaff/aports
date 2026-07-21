@@ -39,7 +39,6 @@ prepare() {
 }
 
 build() {
-#ac_cv_func_bindresvport_sa=no \
     export CFLAGS="$CFLAGS -D_QNX_SOURCE"
     ./configure \
         ac_cv_func_rresvport_af=yes \
