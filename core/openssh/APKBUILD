@@ -2,18 +2,19 @@
 pkgname=openssh
 pkgver=10.3_p1
 _myver=${pkgver%_*}${pkgver#*_}
-pkgrel=0
+pkgrel=1
 pkgdesc="Port of OpenBSD's free SSH release"
 url="https://www.openssh.com/portable.html"
 arch="all"
 license="SSH-OpenSSH"
 options="suid"
 depends="libcrypto3 zlib-ng qnx-io-sock qnx-security"
-makedepends="openssl-dev>3 zlib-ng-dev qnx-io-sock-dev qnx-security-dev"
+makedepends="openssl-dev>3 zlib-ng-dev qnx-io-sock-dev qnx-security-dev autoconf"
 subpackages="$pkgname-doc $pkgname-openrc"
 source="https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$_myver.tar.gz
     fix-qnx-build.patch
     99-qnx.conf
+    00-qnx-configure.patch
     sshd.pam
     sshd.initd
     sshd.confd
@@ -22,6 +23,9 @@ builddir="$srcdir"/$pkgname-$_myver
 
 prepare() {
     default_prepare
+
+    autoreconf
+
     # remove variable (but useless) first line in config (related to upstream VCS)
     sed '/^#.*\$.*\$$/d' -i ssh_config
     sed '/^#.*\$.*\$$/d' -i sshd_config
@@ -35,9 +39,12 @@ prepare() {
 }
 
 build() {
+#ac_cv_func_bindresvport_sa=no \
+    export CFLAGS="$CFLAGS -D_QNX_SOURCE"
     ./configure \
+        ac_cv_func_rresvport_af=yes \
         ac_cv_func_bzero=yes \
-        ac_cv_func_bindresvport_sa=no \
+        ossh_cv_cflag__D_FORTIFY_SOURCE_2=no \
         --build="$CBUILD" \
         --host="$CHOST" \
         --prefix=/usr \
@@ -82,8 +89,9 @@ package() {
 
 sha512sums="
 cb2bd67086491c25e305879b924c3dfa8236502a60c7f250b2fd17d2d9a79ebfc2e40b2f43e42dcf598cc510996e00cc03df9b8e38f34bc2dc71a3d4ff3788fa  openssh-10.3p1.tar.gz
-5a9ca269e6e37baede484e75ff1d371b40a6823afd6f09a7eecc6722a004aff6d796e72522af97742a8c9508c9db84e0e222e0e8f30ff1191fea60461b724a2c  fix-qnx-build.patch
+4407c875092753b7ed27870f542c7529da7c1a2d2af13461909d4cb64c6a09556c73f3a2367e5588769451eeff4736c3014c9d1b1950d170a332d815a681d851  fix-qnx-build.patch
 9db27a1c78a2f423260a75dbe652f126af328b6209736b54ae247c10a3b0e42e5ba3ec605f283eb4dffa1525c9c8cf9ad5cc71e4db5ce6d1f250a78983a99787  99-qnx.conf
+c959cc561991abd0685c12c4c9ed321059d0eeca8b37eecfcd5518edec9a027ebc05b7eacd41a03384a06abc488581c98e80ec16e02fcbe1a55f7b4de8ddde12  00-qnx-configure.patch
 5913b619295a0fe433efd4aceb55c4681233edc9f24b1c80191945cec2ad359e13bfd1bebb509a8d83710fbc0a823af617147cd800dda243239f4a1ea26d2927  sshd.pam
 1a39af5d184beb9bb09007a8b557fa6bf722a834948a1a673bf40cdcd6eed58b92bba92e78dcdc4c581306a58a639be6ee7bc0138e44bede00dd0f0061497e92  sshd.initd
 a8928820f672a75ff9f8cfb95f52bc86b7fccad851d03535ae3aa7d6b4b7b32946c85a018165a730c52a6f047e6c4bcfb5218e017a951966c3caf037d00f7c62  sshd.confd
