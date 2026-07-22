@@ -45,6 +45,7 @@ source="${pkgname}-${pkgver}.tar.gz::https://github.com/tensorflow/tensorflow/ar
     fix-test-paths.patch
     no-export.patch
     qnx-dirent.patch
+    XNNPACK_patch
     "
 builddir="$srcdir/$_pkgname-$_pkgver"
 _cpuinfo_builddir="${srcdir}/cpuinfo-qnx-tflite-r${_cpuinfo_git_rev}"
@@ -75,6 +76,12 @@ unpack() {
 				unzip -n -q "$s";;
         esac
     done
+}
+
+prepare() {
+    default_prepare
+
+    (cd $_xnnpack_builddir && patch ${patch_args:--p1} -i "$srcdir/XNNPACK_patch")
 }
 
 build() {
@@ -161,4 +168,5 @@ e7405c32051aa7ebe0366216e2d85018a19f6781412177479203a316348aabc9bfdc189af30bb7cc
 3cab47aa7c84923ed263cfc285e7041ef0af6f3e6fd8e778afb4320cd9025453f8c68e0f16e37d36b3a96287a4940cfb8446d2aa7456ebed95c6a325fe72fbc8  fix-test-paths.patch
 ff685a04c1e9724caa4722e27f626af8d08a7552054651cfa12432b52668d029943f8774a31f73451fc6f002853f245a209e2a2b693cb6a9663750351d6f11c3  no-export.patch
 2b8401c045cadc1cabc83c07a02d3d070248b60be54cb53c56810d97ce463b225b3d64e57d7985086dc69f5ca8d4b5e6c5e59f757ae59531b183b4d874122f38  qnx-dirent.patch
+5cb40e62ee3e58b7a3c2ef6cad1506d076618c36dd6ace4257e22f3666ddfdc094061b75e5e48cbfbef41dfccdd69fb8ed601c704c98ecb9268447c5cfc0a582  XNNPACK_patch
 "
