@@ -3,7 +3,7 @@ pkgname=tflite-runtime
 _pkgname=tensorflow
 pkgver=2.21.0
 _pkgver=${pkgver/_/-}
-pkgrel=1
+pkgrel=2
 _pthreadpool_ver=0e6ca13779b57d397a5ba6bfdcaa8a275bc8ea2e
 _ruy_ver=master
 _xnnpack_ver=25b42dfddb0ee22170d73ff0d4b333ea1e6edfeb
@@ -14,18 +14,7 @@ pkgdesc="TensorFlow Lite - High-performance ML & GenAI deployment on edge platfo
 url="https://ai.google.dev/edge/litert"
 arch="all"
 license="Apache-2.0"
-depends="
-    abseil-cpp>=20250814.1
-    xnnpack
-    cpuinfo
-    pthreadpool
-    "
-depends_dev="
-    abseil-cpp-dev>=20250814.1
-    xnnpack-dev
-    cpuinfo-dev
-    ruy-dev
-    "
+depends="$pkgname-dev=$pkgver-r$pkgrel"
 makedepends="
     clang
     cmake
@@ -56,13 +45,6 @@ source="${pkgname}-${pkgver}.tar.gz::https://github.com/tensorflow/tensorflow/ar
     fix-test-paths.patch
     no-export.patch
     qnx-dirent.patch
-    cpuinfo_patch
-    eigen_patch
-    pthreadpool_patch
-    ruy_patch
-    XNNPACK_patch
-    kleidiai_patch
-    FXdiv_patch
     "
 builddir="$srcdir/$_pkgname-$_pkgver"
 _cpuinfo_builddir="${srcdir}/cpuinfo-qnx-tflite-r${_cpuinfo_git_rev}"
@@ -95,18 +77,6 @@ unpack() {
     done
 }
 
-prepare() {
-    default_prepare
-
-    (cd $_cpuinfo_builddir && patch ${patch_args:--p1} -i "$srcdir/cpuinfo_patch")
-    (cd $_eigen_builddir && patch ${patch_args:--p1} -i "$srcdir/eigen_patch")
-    (cd $_pthreadpool_builddir && patch ${patch_args:--p1} -i "$srcdir/pthreadpool_patch")
-    (cd $_ruy_builddir && patch ${patch_args:--p1} -i "$srcdir/ruy_patch")
-    (cd $_xnnpack_builddir && patch ${patch_args:--p1} -i "$srcdir/XNNPACK_patch")
-    (cd $_kleidiai_builddir && patch ${patch_args:--p1} -i "$srcdir/kleidiai_patch")
-    (cd $_fxdiv_builddir && patch ${patch_args:--p1} -i "$srcdir/FXdiv_patch")
-}
-
 build() {
     _python_include_dir="/usr/include/python3.14"
     _numpy_include_dir=$(python3 -c "import numpy; print(numpy.get_include())")
@@ -118,18 +88,18 @@ build() {
     CC=clang CXX=clang++ \
     cmake3.5 -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_PREFIX=/usr/lib/tflite-runtime \
         -DQNX=ON \
         -DTFLITE_ENABLE_INSTALL=ON \
-        -DABSL_ENABLE_INSTALL=OFF \
-        -DRUY_ENABLE_INSTALL=OFF \
+        -DABSL_ENABLE_INSTALL=ON \
+        -DRUY_ENABLE_INSTALL=ON \
         -DRUY_MINIMAL_BUILD=ON \
-        -DCPUINFO_BUILD_PKG_CONFIG=OFF \
-        -DEIGEN_BUILD_CMAKE_PACKAGE=OFF \
-        -DFLATBUFFERS_INSTALL=OFF \
+        -DCPUINFO_BUILD_PKG_CONFIG=ON \
+        -DEIGEN_BUILD_CMAKE_PACKAGE=ON \
+        -DFLATBUFFERS_INSTALL=ON \
         -DTFLITE_ENABLE_XNNPACK=ON \
         -DXNNPACK_ENABLE_ASSEMBLY=ON \
-        -DBUILD_SHARED_LIBS=ON \
+        -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_VERBOSE_MAKEFILE=ON \
         -DTFLITE_KERNEL_TEST="$(want_check && echo ON || echo OFF)" \
         -DQNX_PATCH_DIR="$_patch_dir" \
@@ -174,7 +144,7 @@ package() {
 
 _py3() {
     pkgdesc="$pkgdesc (python modules)"
-    depends="$pkgname python3-numpy"
+    depends="python3-numpy"
 
     amove usr/lib/python3.*
 }
