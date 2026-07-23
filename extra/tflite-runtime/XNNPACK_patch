@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 66d38d3484..8ab3dbe984 100644
+index 66d38d3484..fbdea46259 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -101,7 +101,7 @@ ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
@@ -38,16 +38,36 @@ index 66d38d3484..8ab3dbe984 100644
  TARGET_LINK_LIBRARIES(xnnpack-microparams-init PRIVATE xnnpack-base)
  TARGET_LINK_LIBRARIES(xnnpack-normalization PRIVATE xnnpack-base)
  TARGET_LINK_LIBRARIES(xnnpack-pack-lh PRIVATE xnnpack-base xnnpack-logging)
-@@ -987,7 +987,7 @@ IF(XNNPACK_BUILD_LIBRARY)
-       xnnpack-mutex xnnpack-normalization xnnpack-operators xnnpack-operator-run
-       xnnpack-operator-utils xnnpack-pack-lh xnnpack-packing xnnpack-fingerprint-id xnnpack-fingerprint-cache xnnpack-microkernels-prod
-       xnnpack-subgraph xnnpack-datatype xnnpack-reference-ukernels)
+@@ -982,12 +982,12 @@ IF(XNNPACK_BUILD_LIBRARY)
+   TARGET_LINK_LIBRARIES(xnnpack-operator-utils PRIVATE xnnpack-base xnnpack-logging)
+   TARGET_LINK_LIBRARIES(xnnpack-reference-ukernels PRIVATE xnnpack-base xnnpack-datatype)
+   TARGET_LINK_LIBRARIES(xnnpack-subgraph PRIVATE xnnpack-base xnnpack-allocator xnnpack-logging xnnpack-memory xnnpack-mutex xnnpack-operators xnnpack-operator-run xnnpack-datatype)
+-  TARGET_LINK_LIBRARIES(XNNPACK PRIVATE xnnpack-base xnnpack-allocator xnnpack-cache
+-      xnnpack-hardware-config xnnpack-indirection xnnpack-memory xnnpack-microkernel-utils xnnpack-microparams-init
+-      xnnpack-mutex xnnpack-normalization xnnpack-operators xnnpack-operator-run
+-      xnnpack-operator-utils xnnpack-pack-lh xnnpack-packing xnnpack-fingerprint-id xnnpack-fingerprint-cache xnnpack-microkernels-prod
+-      xnnpack-subgraph xnnpack-datatype xnnpack-reference-ukernels)
 -  TARGET_LINK_LIBRARIES(XNNPACK PUBLIC pthreadpool xnnpack-logging xnnpack-fingerprint-check)
++  TARGET_LINK_LIBRARIES(XNNPACK PRIVATE $<BUILD_INTERFACE:xnnpack-base> $<BUILD_INTERFACE:xnnpack-allocator> $<BUILD_INTERFACE:xnnpack-cache>
++      $<BUILD_INTERFACE:xnnpack-hardware-config> $<BUILD_INTERFACE:xnnpack-indirection> $<BUILD_INTERFACE:xnnpack-memory> $<BUILD_INTERFACE:xnnpack-microkernel-utils> $<BUILD_INTERFACE:xnnpack-microparams-init>
++      $<BUILD_INTERFACE:xnnpack-mutex> $<BUILD_INTERFACE:xnnpack-normalization> $<BUILD_INTERFACE:xnnpack-operators> $<BUILD_INTERFACE:xnnpack-operator-run>
++      $<BUILD_INTERFACE:xnnpack-operator-utils> $<BUILD_INTERFACE:xnnpack-pack-lh> $<BUILD_INTERFACE:xnnpack-packing> $<BUILD_INTERFACE:xnnpack-fingerprint-id> $<BUILD_INTERFACE:xnnpack-fingerprint-cache> $<BUILD_INTERFACE:xnnpack-microkernels-prod>
++      $<BUILD_INTERFACE:xnnpack-subgraph> $<BUILD_INTERFACE:xnnpack-datatype> $<BUILD_INTERFACE:xnnpack-reference-ukernels>)
 +  TARGET_LINK_LIBRARIES(XNNPACK PUBLIC pthreadpool $<BUILD_INTERFACE:xnnpack-logging> $<BUILD_INTERFACE:xnnpack-fingerprint-check>)
    SET_TARGET_PROPERTIES(XNNPACK PROPERTIES C_EXTENSIONS YES)
  ENDIF()
  IF(NOT MSVC)
-@@ -1315,6 +1315,7 @@ ENDIF()
+@@ -1307,14 +1307,15 @@ ENDIF()
+ IF(XNNPACK_BUILD_ALL_MICROKERNELS)
+   TARGET_LINK_LIBRARIES(xnnpack-microkernels-all PRIVATE fxdiv)
+ ENDIF()
+-TARGET_LINK_LIBRARIES(xnnpack-microkernels-prod PRIVATE fxdiv)
++TARGET_LINK_LIBRARIES(xnnpack-microkernels-prod PRIVATE $<BUILD_INTERFACE:fxdiv>)
+ TARGET_LINK_LIBRARIES(xnnpack-indirection PRIVATE fxdiv)
+ IF(XNNPACK_BUILD_LIBRARY)
+-  TARGET_LINK_LIBRARIES(XNNPACK PRIVATE fxdiv)
++  TARGET_LINK_LIBRARIES(XNNPACK PRIVATE $<BUILD_INTERFACE:fxdiv>)
+ ENDIF()
  
  IF(XNNPACK_BUILD_LIBRARY)
    INSTALL(TARGETS XNNPACK xnnpack-microkernels-prod
