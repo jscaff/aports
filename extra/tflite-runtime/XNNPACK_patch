@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 66d38d3484..1831cbc7f3 100644
+index 66d38d3484..e5b51cc3b2 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -101,7 +101,7 @@ ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
@@ -51,7 +51,7 @@ index 66d38d3484..1831cbc7f3 100644
 +  TARGET_LINK_LIBRARIES(XNNPACK PRIVATE $<BUILD_INTERFACE:xnnpack-base> $<BUILD_INTERFACE:xnnpack-allocator> $<BUILD_INTERFACE:xnnpack-cache>
 +      $<BUILD_INTERFACE:xnnpack-hardware-config> $<BUILD_INTERFACE:xnnpack-indirection> $<BUILD_INTERFACE:xnnpack-memory> $<BUILD_INTERFACE:xnnpack-microkernel-utils> $<BUILD_INTERFACE:xnnpack-microparams-init>
 +      $<BUILD_INTERFACE:xnnpack-mutex> $<BUILD_INTERFACE:xnnpack-normalization> $<BUILD_INTERFACE:xnnpack-operators> $<BUILD_INTERFACE:xnnpack-operator-run>
-+      $<BUILD_INTERFACE:xnnpack-operator-utils> $<BUILD_INTERFACE:xnnpack-pack-lh> $<BUILD_INTERFACE:xnnpack-packing> $<BUILD_INTERFACE:xnnpack-fingerprint-id> $<BUILD_INTERFACE:xnnpack-fingerprint-cache> $<BUILD_INTERFACE:xnnpack-microkernels-prod>
++      $<BUILD_INTERFACE:xnnpack-operator-utils> $<BUILD_INTERFACE:xnnpack-pack-lh> $<BUILD_INTERFACE:xnnpack-packing> $<BUILD_INTERFACE:xnnpack-fingerprint-id> $<BUILD_INTERFACE:xnnpack-fingerprint-cache> xnnpack-microkernels-prod
 +      $<BUILD_INTERFACE:xnnpack-subgraph> $<BUILD_INTERFACE:xnnpack-datatype> $<BUILD_INTERFACE:xnnpack-reference-ukernels>)
 +  TARGET_LINK_LIBRARIES(XNNPACK PUBLIC pthreadpool $<BUILD_INTERFACE:xnnpack-logging> $<BUILD_INTERFACE:xnnpack-fingerprint-check>)
    SET_TARGET_PROPERTIES(XNNPACK PROPERTIES C_EXTENSIONS YES)
