@@ -1,9 +1,22 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 399095e..5801ac8 100644
+index 399095e..22335ae 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -175,6 +175,7 @@ ENDIF()
- TARGET_LINK_LIBRARIES(pthreadpool PRIVATE fxdiv)
+@@ -146,7 +146,7 @@ ELSE()
+   TARGET_COMPILE_DEFINITIONS(pthreadpool PRIVATE PTHREADPOOL_USE_FASTPATH=0)
+ ENDIF()
+ 
+-TARGET_LINK_LIBRARIES(pthreadpool PUBLIC pthreadpool_interface)
++TARGET_LINK_LIBRARIES(pthreadpool PUBLIC $<BUILD_INTERFACE:pthreadpool_interface>)
+ TARGET_INCLUDE_DIRECTORIES(pthreadpool PRIVATE src)
+ IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+   SET(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+@@ -172,9 +172,10 @@ IF(NOT TARGET fxdiv)
+     "${FXDIV_SOURCE_DIR}"
+     "${CMAKE_BINARY_DIR}/FXdiv")
+ ENDIF()
+-TARGET_LINK_LIBRARIES(pthreadpool PRIVATE fxdiv)
++TARGET_LINK_LIBRARIES(pthreadpool PRIVATE $<BUILD_INTERFACE:fxdiv>)
  
  INSTALL(TARGETS pthreadpool
 +  EXPORT tensorflow-liteTargets
