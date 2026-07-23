@@ -35,10 +35,10 @@ NO_GETTEXT=YesPlease
 NO_SVN_TESTS=YesPlease
 NO_REGEX=YesPlease
 NO_SYS_POLL_H=1
-NEED_LIBICONV=Yes
+NEEDS_LIBICONV=Yes
 INSTALL_SYMLINKS=1
 CFLAGS=$CFLAGS -D_QNX_SOURCE
-LDFLAGS=$LDFLAGS -shared-libgcc -lregex -liconv
+LDFLAGS=$LDFLAGS -shared-libgcc -lregex 
 USE_LIBPCRE2=YesPlease
 PYTHON_PATH=/usr/bin/python3
     " > config.mak
@@ -72,6 +72,9 @@ package() {
         "$pkgdir"/usr/share/bash-completion/completions/git
     install -Dm644 contrib/completion/git-prompt.sh \
         "$pkgdir"/usr/share/git-core/git-prompt.sh
+
+    # Reenable if we need it, atm we have no SVN support
+    rm "$pkgdir"/usr/lib/git-svn
 }
 
 
