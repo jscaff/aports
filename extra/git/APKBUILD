@@ -17,7 +17,6 @@ subpackages="
     $pkgname-bash-completion
     $pkgname-prompt::noarch
     perl-$pkgname:_perl_git:noarch
-    $pkgname-svn::noarch
     $pkgname-perl:_git_perl:noarch
     $pkgname-doc
     "
@@ -75,18 +74,6 @@ package() {
         "$pkgdir"/usr/share/git-core/git-prompt.sh
 }
 
-
-svn() {
-    pkgdesc="Subversion support for git"
-    depends="
-        perl
-        perl-git-svn=$pkgver-r$pkgrel
-        perl-subversion
-        perl-term-readkey
-        "
-
-    amove $_gitcoredir/git-svn
-}
 
 _perl_git() {
     pkgdesc="Perl interface to Git"
