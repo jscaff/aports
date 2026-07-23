@@ -150,6 +150,7 @@ package() {
 
     # ruy installs headers to /usr/lib/build for some reason.
     mv "$pkgdir"/usr/lib/build/ruy "$pkgdir"/usr/lib/tflite-runtime/include
+    rm -rf "$pkgdir"/usr/lib/build # empty
 }
 
 dev() {
