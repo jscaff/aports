@@ -149,12 +149,10 @@ package() {
     python3 -m compileall -fq "$pkgdir"/usr/lib/python*
 
     # ruy installs headers to /usr/lib/build for some reason.
-    mv "$pkgdir"/usr/lib/build "$pkgdir"/usr/lib/tflite-runtime/include/ruy
+    mv "$pkgdir"/usr/lib/build/ruy "$pkgdir"/usr/lib/tflite-runtime/include
 }
 
 dev() {
-    default_dev
-
     amove usr/lib/tflite-runtime
 }
 
