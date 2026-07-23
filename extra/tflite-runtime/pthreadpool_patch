@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 399095e..5801ac8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -175,6 +175,7 @@ ENDIF()
+ TARGET_LINK_LIBRARIES(pthreadpool PRIVATE fxdiv)
+ 
+ INSTALL(TARGETS pthreadpool
++  EXPORT tensorflow-liteTargets
+   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ 

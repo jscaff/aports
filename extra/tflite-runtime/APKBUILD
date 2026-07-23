@@ -42,9 +42,11 @@ source="${pkgname}-${pkgver}.tar.gz::https://github.com/tensorflow/tensorflow/ar
     https://github.com/google/XNNPACK/archive/$_xnnpack_ver.zip
     https://github.com/ARM-software/kleidiai/archive/$_kleidiai_ver.zip
     https://github.com/Maratyszcza/FXdiv/archive/$_fxdiv_ver.zip
+    export-targets.patch
     fix-test-paths.patch
-    no-export.patch
+    qnx-python-packaging.patch
     qnx-dirent.patch
+    pthreadpool_patch
     XNNPACK_patch
     "
 builddir="$srcdir/$_pkgname-$_pkgver"
@@ -81,6 +83,7 @@ unpack() {
 prepare() {
     default_prepare
 
+    (cd $_pthreadpool_builddir && patch ${patch_args:--p1} -i "$srcdir/pthreadpool_patch")
     (cd $_xnnpack_builddir && patch ${patch_args:--p1} -i "$srcdir/XNNPACK_patch")
 }
 
@@ -173,8 +176,10 @@ db93e3fb726a2fe7a50e3f019e432c317958c9ccc0ef4a5cfdccd412e6ea6433b73cae3c0a511007
 ad7bad6bcae85e9772ebbc1b6d0ba0bf56064419ffca026ac3af736ab3a2d2191d455cb90f974931cec3ed6e189168a0af79454a340df8bc00a15d92c235a3dd  25b42dfddb0ee22170d73ff0d4b333ea1e6edfeb.zip
 e7405c32051aa7ebe0366216e2d85018a19f6781412177479203a316348aabc9bfdc189af30bb7cc94ce6d7fbf8efc6e9900c8365190919028b67fb145c75ff4  63205aa90afa6803d8f58bc3081b69288e9f1906.zip
 8a2ef9b5c3353bbb53be3584bccf5bf0ebda99ff903b55d34a966768e3acfead08d1d981e7428697166e028067c90f31cbcf793a39d07d76c31b2fb51787f74e  b408327ac2a15ec3e43352421954f5b1967701d1.zip
+677d06dba352d737133d070a1737d3d79245f9f7848c1528a741bac50453e795ebb9dc076824469c51fe346e991d7aed462511545ad8f9f7a48d829fcbf64c17  export-targets.patch
 3cab47aa7c84923ed263cfc285e7041ef0af6f3e6fd8e778afb4320cd9025453f8c68e0f16e37d36b3a96287a4940cfb8446d2aa7456ebed95c6a325fe72fbc8  fix-test-paths.patch
-ff685a04c1e9724caa4722e27f626af8d08a7552054651cfa12432b52668d029943f8774a31f73451fc6f002853f245a209e2a2b693cb6a9663750351d6f11c3  no-export.patch
+ce519cb8a1b71be6b8741da1e0d52f6280e935f2ad562f5fddcfd631445f03f42a60a60827b5ac667c7c88e4248df864ca3f47e7d270a0b9d8551b5e5a8cdf6c  qnx-python-packaging.patch
 2b8401c045cadc1cabc83c07a02d3d070248b60be54cb53c56810d97ce463b225b3d64e57d7985086dc69f5ca8d4b5e6c5e59f757ae59531b183b4d874122f38  qnx-dirent.patch
-5cb40e62ee3e58b7a3c2ef6cad1506d076618c36dd6ace4257e22f3666ddfdc094061b75e5e48cbfbef41dfccdd69fb8ed601c704c98ecb9268447c5cfc0a582  XNNPACK_patch
+d8179bac4e198c2571b566a9bc4f487da771c580a17fc1b16068583f2b5120988e7011428e16e6d13ae53eeada2634e00575f6c7b5726635a53de7d1fd57368c  pthreadpool_patch
+709e79d5b7f3fff7579c43de50c20e1fcd7fd9283e638ce7d99cfb2d0c6d01560563af0de7274f40bd7c7829ea2ebf00f9c88638120f514f7fc116dcde5f807b  XNNPACK_patch
 "
