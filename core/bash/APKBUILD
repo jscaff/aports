@@ -2,7 +2,7 @@ pkgname=bash
 _basever=5.3
 _patchlevel=3
 pkgver="$_basever.$_patchlevel"
-pkgrel=4
+pkgrel=5
 pkgdesc="The GNU Bourne Again shell"
 url="https://git.savannah.gnu.org/cgit/bash.git/"
 arch="all"
@@ -21,6 +21,7 @@ source="https://mirror.csclub.uwaterloo.ca/gnu/bash/bash-$_basever.tar.gz
 	dot.bashrc dot.bash_profile dot.bash_logout
 "
 provides="/bin/sh"
+provider_priority="1"
 builddir="$srcdir"/bash-"$_basever"
 
 prepare() {
@@ -30,7 +31,7 @@ prepare() {
 }
 
 build() {
-    CFLAGS="$CFLAGS -O2 -Wl,-lregex,--stack,8388608" \
+    CFLAGS="$CFLAGS -O2 -Wl,-lregex,--stack,8388608 -Wno-implicit-function-declaration" \
     ./configure \
         --build="$CBUILD" \
         --host="$CHOST" \
