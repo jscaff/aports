@@ -14,6 +14,7 @@ pkgdesc="TensorFlow Lite - High-performance ML & GenAI deployment on edge platfo
 url="https://ai.google.dev/edge/litert"
 arch="all"
 license="Apache-2.0"
+options="net"
 depends="$pkgname-dev=$pkgver-r$pkgrel"
 makedepends="
     clang
