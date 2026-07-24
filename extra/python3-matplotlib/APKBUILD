@@ -56,8 +56,6 @@ checkdepends="
 subpackages="
     $pkgname-fonts::noarch
     $pkgname-data::noarch
-    $pkgname-gtk3::noarch
-    $pkgname-gtk4::noarch
     "
 # from https://src.fedoraproject.org/rpms/python-matplotlib/tree/rawhide
 source="https://github.com/matplotlib/matplotlib/archive/v$pkgver/matplotlib-v$pkgver.tar.gz
@@ -122,6 +120,14 @@ package() {
 
     # Remove tests from installation
     find "$pkgdir" -type d -name tests -exec rm -r {} \+
+
+    # Disabled subpkgs
+    rm -rf "$pkgdir"/usr/lib/python*/site-packages/matplotlib/backends/backend_tk*.py
+    rm -rf "$pkgdir"/usr/lib/python*/site-packages/matplotlib/backends/_backend_tk.py
+    rm -rf "$pkgdir"/usr/lib/python*/site-packages/matplotlib/backends/_tkagg.*
+    rm -rf "$pkgdir"/usr/lib/python*/site-packages/matplotlib/backends/backend_wx*.py
+    rm -rf "$pkgdir"/usr/lib/python*/site-packages/matplotlib/backends/backend_gtk3*.py
+    rm -rf "$pkgdir"/usr/lib/python*/site-packages/matplotlib/backends/backend_gtk4*.py
 }
 
 fonts() {
@@ -138,19 +144,6 @@ data() {
     amove usr/lib/python*/site-packages/matplotlib/mpl-data
 }
 
-gtk3() {
-    pkgdesc="GTK3 backend for $pkgname"
-    depends="$pkgname=$pkgver-r$pkgrel python3-gobject3"
-
-    amove usr/lib/python*/site-packages/matplotlib/backends/backend_gtk3*.py
-}
-
-gtk4() {
-    pkgdesc="GTK4 backend for $pkgname"
-    depends="$pkgname=$pkgver-r$pkgrel python3-gobject3"
-
-    amove usr/lib/python*/site-packages/matplotlib/backends/backend_gtk4*.py
-}
 
 sha512sums="
 caf7dc80ecbe93d47b65af1fb605dbcd0c384d6e453c76171dfef9c42db0b7045a9413e5fcb1a46a738d95e161431fb013b531353e01b82c5c7d3cf461e67e7b  matplotlib-v3.10.6.tar.gz
