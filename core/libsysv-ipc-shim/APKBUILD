@@ -1,7 +1,7 @@
 # Maintainer: Aaron Bassett <abassett@qnx.com>
 pkgname=libsysv-ipc-shim
 pkgver=0.1.0
-pkgrel=3
+pkgrel=4
 pkgdesc="QNX ipc.h shim"
 url="https://qnx.com"
 arch="all"
@@ -38,5 +38,5 @@ dev() {
 }
 
 sha512sums="
-ccb268cf8b6dfcd7d949a482af6487561f18ab22c86eb4ae9a95783f2ac9cb568defcbc03cbc9895756229d313b656a87eff9601390bf43ff5bb048a32956c45  libsysv-ipc-shim-v0.1.0-r3.tar.gz
+c4ccb173abe3cf27bc583aac00fb8aa0892ef4df2dc5991faf8ce4d9b905c312f5f85eb0fd3d43119b42de59d2f3923f118f413ff43b6c24a01c1290e091cbc3  libsysv-ipc-shim-v0.1.0-r4.tar.gz
 "
