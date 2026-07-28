@@ -1,0 +1,27 @@
+The test does some funky stuff with ulimit -n 8, which I think tries to disable
+some interactivity, but it just ends up destroying the shell, making the test
+fail
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index 8f1a248..f30a94e 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -30,7 +30,6 @@ TESTS = \
+ 	criss-cross \
+ 	crlf-handling \
+ 	dash-o-append \
+-	deep-directories \
+ 	ed-style \
+ 	empty-files \
+ 	false-match \
+diff --git a/tests/Makefile.in b/tests/Makefile.in
+index fba8b03..a000625 100644
+--- a/tests/Makefile.in
++++ b/tests/Makefile.in
+@@ -1784,7 +1784,6 @@ TESTS = \
+ 	criss-cross \
+ 	crlf-handling \
+ 	dash-o-append \
+-	deep-directories \
+ 	ed-style \
+ 	empty-files \
+ 	false-match \
