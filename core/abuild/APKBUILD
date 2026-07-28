@@ -2,13 +2,13 @@
 pkgname=abuild
 _pkgver=3.16.0
 pkgver=${_pkgver}_p1
-pkgrel=1
+pkgrel=2
 pkgdesc="APK build toolchain, adapted for QNX"
 url="https://gitlab.alpinelinux.org/alpine/abuild/"
 arch="all"
 license="GPL-2.0-only"
 depends="qnx-utils nproc apk-tools fakeroot busybox openssl pkgconf pax-utils 
-    libssl3 libcrypto3 zlib-ng gawk curl bc tar gzip bzip2 zstd xz lzip"
+    libssl3 libcrypto3 zlib-ng gawk curl bc tar gzip bzip2 zstd xz lzip patch"
 makedepends="scdoc pkgconf pkgconf-dev openssl-dev zlib-ng-dev"
 options="suid"
 subpackages="$pkgname-doc"
