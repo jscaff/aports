@@ -9,6 +9,7 @@ url="https://www.gnu.org/software/ed/"
 arch="all"
 license="GPL-2.0-or-later"
 subpackages="$pkgname-doc"
+makedepends="qnx-io-sock-dev"
 source="https://mirror.csclub.uwaterloo.ca/gnu/ed/ed-$pkgver.tar.lz"
 
 build() {
