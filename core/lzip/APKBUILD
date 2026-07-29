@@ -9,6 +9,8 @@ url="https://www.nongnu.org/lzip/"
 arch="all"
 license="GPL-2.0-or-later"
 subpackages="$pkgname-doc"
+depends="libc++"
+makedepends="libc++-dev"
 source="https://mirror.csclub.uwaterloo.ca/nongnu/lzip/lzip-$pkgver.tar.gz"
 
 build() {
