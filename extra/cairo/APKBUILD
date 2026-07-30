@@ -1,6 +1,7 @@
+# Maintainer: Felix Lionardo <flionardo@qnx.com>
 pkgname=cairo
 pkgver=1.18.4
-pkgrel=0
+pkgrel=1
 pkgdesc="A vector graphics library"
 url="https://cairographics.org/"
 arch="all"
@@ -10,7 +11,7 @@ depends_dev="
     fontconfig-dev
     freetype-dev
     pixman-dev
-    "
+"
 makedepends="
     $depends_dev
     meson
@@ -21,14 +22,16 @@ makedepends="
     glib-dev
     libpng-dev
     zlib-ng-dev
-    "
+    libsysv-ipc-shim-dev
+"
 depends="
-        fontconfig
-        freetype
-        pixman
-        glib
+    fontconfig
+    freetype
+    pixman
+    glib
 	zlib-ng
-        "
+    libsysv-ipc-shim
+"
 
 subpackages="
     $pkgname-static
@@ -38,10 +41,11 @@ subpackages="
 source="https://gitlab.freedesktop.org/cairo/cairo/-/archive/$pkgver/cairo-$pkgver.tar.bz2"
 
 build() {
-    meson setup build \
-        -Db_lto=true \
+    # abuild-meson defaults lto to false, due to a bug in ldqnx. (CLT-10182)
+    # TODO: enable lto.
+    abuild-meson \
         -Dc_args=-DHAVE_CTIME_R \
-        -Dc_link_args=-Wl,-lm \
+        -Dc_link_args=-Wl,-lm,-lsysv-ipc \
         -Dtests=disabled \
         -Dzlib=enabled \
         -Dfontconfig=enabled \
@@ -49,11 +53,8 @@ build() {
         -Dglib=enabled \
         -Dpng=enabled \
         -Ddefault_library=both \
-        --reconfigure \
-        --buildtype=release \
-        --prefix=/usr
+        . build
                 
-
     ninja -C build
 }
 

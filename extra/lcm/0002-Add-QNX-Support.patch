@@ -1,0 +1,17 @@
+diff --git a/lcm/udpm_util.h b/lcm/udpm_util.h
+index 01180fd..b958d9f 100644
+--- a/lcm/udpm_util.h
++++ b/lcm/udpm_util.h
+@@ -8,7 +8,11 @@ extern "C" {
+ #include <stdlib.h>
+ #include <time.h>
+ 
+-#ifndef WIN32
++#if defined(__QNX__)
++#include <sys/socket.h>
++#endif
++
++#if !defined(WIN32)
+ #include <arpa/inet.h>
+ #include <netdb.h>
+ #include <sys/time.h>

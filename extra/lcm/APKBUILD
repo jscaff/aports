@@ -1,0 +1,67 @@
+# Contributor: nnarayanamurthy <nnarayanamurthy@qnx.com>
+# Maintainer: nnarayanamurthy <nnarayanamurthy@qnx.com>
+
+pkgname=lcm
+pkgver=1.5.2
+pkgrel=0
+pkgdesc="Lightweight Communications and Marshalling"
+url="https://github.com/lcm-proj/lcm"
+arch="all"
+options="!check"
+license="LGPL-2.1-or-later"
+depends="
+    glib
+    libc++
+    qnx-io-sock
+    qnx-gcc-libs
+"
+makedepends="
+    cmake
+    libc++-dev
+    ninja
+    glib-dev
+    qnx-io-sock-dev
+"
+
+subpackages="
+    $pkgname-dev
+    $pkgname-doc
+"
+
+source="$pkgname-$pkgver.tar.gz::https://github.com/lcm-proj/lcm/archive/refs/tags/v$pkgver.tar.gz
+    0001-Add-QNX-Support.patch
+    0002-Add-QNX-Support.patch
+    "
+
+build() {
+    cmake -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=None \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DLCM_ENABLE_JAVA=OFF \
+        -DLCM_ENABLE_LUA=OFF \
+        -DLCM_ENABLE_PYTHON=OFF \
+    	-DCMAKE_EXE_LINKER_FLAGS="-lsocket" \
+		-DCMAKE_SHARED_LINKER_FLAGS="-lsocket"
+
+    cmake --build build
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+}
+
+dev() {
+    default_dev
+
+    amove usr/lib/lcm
+}
+
+check() {
+    ctest --test-dir build --output-on-failure
+}
+
+sha512sums="
+3da9739a03769e609d44a93ae0f6790a604ca05c93639860bdc67843738452894582ca5eccabc3ade61afe519f40d3147f6bf2fe6ec5abcb03c8dd74dd22fb9c  lcm-1.5.2.tar.gz
+28dd21322fa92da957fc8aae928f59ce42accb72a65c00aae2f7eab365275c94e7285e86cfdceaa23ae508adc9b5770e5d184896a2eae7f65b635f14ed372bdb  0001-Add-QNX-Support.patch
+6a255bde448007d8fcabcd17de812281dc412a99f2e55f5abc8047fa874f8c0a43b849a1437150a62bc9b42a2b962db88f42f9e6972568fdb4cb7067e40f4f1e  0002-Add-QNX-Support.patch
+"

@@ -15,8 +15,12 @@ depend() {
 start_pre() {
     checkpath -d /run/dhcpcd
 
-    # we need to allow the dhcpcd user access to /dev/bpf
-    setfacl -m u:dhcpcd:rw- /dev/bpf
-    setfacl -m g:dhcpcd:rw- /dev/bpf
+    if getent passwd "dhcpcd" >/dev/null 2>&1 && getent group "dhcpcd" >/dev/null 2>&1; then
+        # we need to allow the dhcpcd user access to /dev/bpf
+        setfacl -m u:dhcpcd:rw- /dev/bpf
+        setfacl -m g:dhcpcd:rw- /dev/bpf
+    else
+        ewarn "dhcpcd user or group missing will not drop privledges"
+    fi
 }
 

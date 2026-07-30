@@ -1,0 +1,38 @@
+# Alpine-Contributor: Breno Leitao <breno.leitao@gmail.com>
+# Alpine-Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
+pkgname=ed
+pkgver=1.22.5
+pkgrel=0
+pkgdesc="Line-oriented text editor used to create, display, modify and otherwise manipulate text files"
+url="https://www.gnu.org/software/ed/"
+arch="all"
+license="GPL-2.0-or-later"
+subpackages="$pkgname-doc"
+makedepends="qnx-io-sock-dev"
+source="https://mirror.csclub.uwaterloo.ca/gnu/ed/ed-$pkgver.tar.lz"
+
+build() {
+	# bindir needs correspond with busybox location
+	./configure CC="${CC:-cc}" CFLAGS+="$CFLAGS" LDFLAGS="$LDFLAGS" \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--bindir=/usr/bin \
+		--mandir=/usr/share/man
+	make all
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+5f879be3819b6e989cdf9e415b6ad65f24275cc7a6c63f81fb849c92cd97beac088b1dfef37e9eb3f2c1a3e84ffaa553f611a1e7bdd9c1cb5646283f814637b1  ed-1.22.5.tar.lz
+"
+
+

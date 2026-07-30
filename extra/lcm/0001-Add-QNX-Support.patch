@@ -1,0 +1,13 @@
+diff --git a/lcm-logger/lcm_logger.c b/lcm-logger/lcm_logger.c
+index 9c1a781..ce12706 100644
+--- a/lcm-logger/lcm_logger.c
++++ b/lcm-logger/lcm_logger.c
+@@ -649,7 +649,7 @@ static void usage()
+ 
+ int main(int argc, char *argv[])
+ {
+-#ifndef WIN32
++#if !defined(WIN32) && !defined(__QNX__)
+     setlinebuf(stdout);
+ #endif
+ 
