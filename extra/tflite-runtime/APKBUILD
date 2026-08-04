@@ -89,7 +89,7 @@ prepare() {
 }
 
 build() {
-    _python_include_dir="/usr/include/python3.14"
+    _python_include_dir=$(python3 -c "import sysconfig; print(sysconfig.get_path('include'))")
     _numpy_include_dir=$(python3 -c "import numpy; print(numpy.get_include())")
     _pybind11_include_dir=$(python3 -c "import pybind11; print (pybind11.get_include())")
 
