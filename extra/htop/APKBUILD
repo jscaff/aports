@@ -4,7 +4,7 @@
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=htop
 pkgver=3.5.0
-pkgrel=0
+pkgrel=1
 pkgdesc="Interactive process viewer"
 url="https://htop.dev/"
 arch="all"
@@ -44,5 +44,5 @@ package() {
 
 
 sha512sums="
-b9ff1b8f2a3312c43051f47bb2c9480fc14978290e02acbea1ae5c41ea6b3e8f0b887008806862fb991b9a43b5ebfd29ce6a248f00579398fe8bd80ccce5ab0b  htop-qnx-3.5.0-r0.tar.gz
+7309e6a50bda04a43786a64fb4b59a3db7bc932a6483dc56d50dd5e9e2002eeaccbc692f9c1ab120fdfd69896a1da26bd913270af171e50ff72a434a56cb6ead  htop-qnx-3.5.0-r1.tar.gz
 "
