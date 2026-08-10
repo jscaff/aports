@@ -3,7 +3,7 @@
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=patch
 pkgver=2.8
-pkgrel=1
+pkgrel=2
 pkgdesc="Utility to apply diffs to files"
 url="https://www.gnu.org/software/patch/patch.html"
 arch="all"
@@ -13,6 +13,7 @@ subpackages="$pkgname-doc"
 source="
 https://mirror.csclub.uwaterloo.ca/gnu/patch/patch-$pkgver.tar.xz
 disable-deep-directory-test.patch
+fix-qnx-fpathconf.patch
 "
 
 build() {
@@ -41,4 +42,5 @@ package() {
 sha512sums="
 d689d696660a662753e8660792733c3be0a94c76abfe7a28b0f9f70300c3a42d6437d081553a59bfde6e1b0d5ee13ed89be48d0b00b6da2cadbfc14a15ada603  patch-2.8.tar.xz
 e762e41bed49c01d4580da657212d52ec3f125f2c5e82ebad17318ba1f72516f86a0244ac3a02bd63f61e41e5a5e2e715cd8414487f543f105c1407a103fb801  disable-deep-directory-test.patch
+2c04fd6e95707bab3702abe7176a5ac132fb8c94d4687103a8280dcbeb4b4bdb28d5ce975999d049d9ae3ec6bda4ba67542fb3ed49b2e004d534349907862a95  fix-qnx-fpathconf.patch
 "

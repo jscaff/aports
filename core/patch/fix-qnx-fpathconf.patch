@@ -1,0 +1,27 @@
+--- a/lib/backupfile.c
++++ b/lib/backupfile.c
+@@ -30,6 +30,9 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
++#ifdef __QNX__
++#include <libgen.h>
++#endif
+ 
+ #include "attribute.h"
+ #include "basename-lgpl.h"
+@@ -127,7 +130,14 @@
+           else
+             {
+               errno = 0;
++#ifndef __QNX__
+               name_max = fpathconf (dir_fd, _PC_NAME_MAX);
++#else
++              // fpathconf doesn't like openat O_DIRECTORY directories
++              char *p = realpath (file, NULL);
++              char *dname = dirname (p);
++              name_max = pathconf (dname, _PC_NAME_MAX);
++#endif
+               name_max -= !errno;
+             }
+ 
