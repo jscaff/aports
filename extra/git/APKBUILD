@@ -72,9 +72,6 @@ package() {
         "$pkgdir"/usr/share/bash-completion/completions/git
     install -Dm644 contrib/completion/git-prompt.sh \
         "$pkgdir"/usr/share/git-core/git-prompt.sh
-
-    # Reenable if we need it, atm we have no SVN support
-    rm "$pkgdir"/usr/lib/git-svn
 }
 
 
