@@ -11,7 +11,7 @@ index 03b970640..c62fab433 100644
  #endif
  
  #include "absl/algorithm/container.h"
-@@ -222,6 +224,18 @@
+@@ -222,6 +224,12 @@
    if (sysctl(mib, 4, &buffer, &len, nullptr, 0) != 0) {
      len = 0;
    }

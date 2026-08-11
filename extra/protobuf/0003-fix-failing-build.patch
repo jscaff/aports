@@ -1,0 +1,39 @@
+Commit cherry-picked from protobuf: 
+
+commit 5acc4899205ca70eea650c9b40f0bbbeaa901596
+Author: Bogdan Graur <bgraur@google.com>
+Date:   Thu Jul 31 07:54:51 2025 -0700
+
+    Remove HasBits<> ctor with empty initializer list expectation.
+    
+    This results in a nullptr dereference which is UB.
+    
+    PiperOrigin-RevId: 789334889
+
+diff --git a/src/google/protobuf/has_bits_test.cc b/src/google/protobuf/has_bits_test.cc
+index 05529c59a..6ef673948 100644
+--- a/src/google/protobuf/has_bits_test.cc
++++ b/src/google/protobuf/has_bits_test.cc
+@@ -38,10 +38,6 @@ TEST(HasBits, ValueInit) {
+     HasBits<4> bits;
+     EXPECT_TRUE(bits.empty());
+   }
+-  {
+-    HasBits<4> bits({});
+-    EXPECT_TRUE(bits.empty());
+-  }
+   {
+     HasBits<4> bits({1});
+     EXPECT_FALSE(bits.empty());
+@@ -62,10 +58,6 @@ TEST(HasBits, ConstexprValueInit) {
+     constexpr HasBits<4> bits;
+     EXPECT_TRUE(bits.empty());
+   }
+-  {
+-    constexpr HasBits<4> bits({});
+-    EXPECT_TRUE(bits.empty());
+-  }
+   {
+     constexpr HasBits<4> bits({1});
+     EXPECT_FALSE(bits.empty());
+
