@@ -3,7 +3,7 @@ pkgname=ca-certificates
 pkgver=1
 _curl_ver=8.16.0
 _nss_ver=3.117
-pkgrel=4
+pkgrel=5
 pkgdesc="CA certificates provider"
 url="https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/"
 arch="noarch"
@@ -12,7 +12,7 @@ subpackages="$pkgname-mozilla::noarch"
 makedepends="perl"
 options="!check"
 triggers="ca-certificates.trigger=/usr/share/ca-certificates"
-install="$pkgname.post-install $pkgname.post-deinstall"
+install="$pkgname.post-deinstall"
 source="https://raw.githubusercontent.com/curl/curl/refs/tags/curl-${_curl_ver//./_}/scripts/mk-ca-bundle.pl
     https://raw.githubusercontent.com/nss-dev/nss/refs/tags/NSS_${_nss_ver//./_}_RTM/lib/ckfw/builtins/certdata.txt
     update-ca-trust
