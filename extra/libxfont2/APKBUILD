@@ -16,8 +16,9 @@ makedepends="
 	xtrans
 	zlib-dev
     ncurses-dev
+    qnx-io-sock-dev
 	"
-depends="freetype zlib libfontenc ncurses"
+depends="freetype zlib libfontenc ncurses qnx-io-sock"
 depends_dev="$depends xorgproto"
 subpackages="$pkgname-dev"
 source="
