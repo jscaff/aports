@@ -7,6 +7,7 @@ pkgdesc="X11 miscellaneous micro-utility library"
 url="https://xorg.freedesktop.org/"
 arch="all"
 license="MIT"
+depends="libx11 libxext libxt"
 makedepends="
 	libsm-dev
 	libx11-dev
