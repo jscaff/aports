@@ -17,6 +17,7 @@ makedepends="$depends_dev
 	nghttp2-dev
 	openssl-dev>3
 	protobuf-c-dev
+    protobuf-c-compiler
 	python3-dev
 	swig
     autoconf
@@ -33,7 +34,7 @@ subpackages="
 	$pkgname-dev
 	$pkgname-doc
 	$pkgname-libs
-	py3-unbound:py
+	python3-unbound:py
 	"
 source="
     https://unbound.net/downloads/unbound-$pkgver.tar.gz
@@ -43,33 +44,6 @@ source="
     use-system-default-so-sndbuf.patch
 "
 
-# secfixes:
-#   1.24.1-r0:
-#     - CVE-2025-11411
-#   1.23.1-r0:
-#     - CVE-2025-5994
-#   1.21.1-r0:
-#     - CVE-2024-8508
-#   1.20.0-r0:
-#     - CVE-2024-33655
-#   1.19.2-r0:
-#     - CVE-2024-1931
-#   1.19.1-r0:
-#     - CVE-2023-50387
-#     - CVE-2023-50868
-#   1.16.3-r0:
-#     - CVE-2022-3204
-#   1.16.2-r0:
-#     - CVE-2022-30698
-#     - CVE-2022-30699
-#   1.10.1-r0:
-#     - CVE-2020-12662
-#     - CVE-2020-12663
-#   1.9.5-r0:
-#     - CVE-2019-18934
-#   1.9.4-r0:
-#     - CVE-2019-16866
-
 prepare() {
     default_prepare
     # We patched the configure.ac file, we need to regenerate the configure and header template
@@ -78,9 +52,6 @@ prepare() {
 }
 
 build() {
-	CFLAGS="$CFLAGS -Qunused-arguments" \
-    CPPFLAGS="$CPPFLAGS -Qunused-arguments" \
-	CC=clang \
     PYTHON_VERSION=3 \
     ./configure \
         --build="$CBUILD" \
@@ -136,7 +107,7 @@ package() {
 py() {
 	pkgdesc="Python bindings to libunbound"
 	depends=""
-	provides="py-unbound=$pkgver-r$pkgrel" # backward compatibility (Alpine <3.23)
+	provides="python3-unbound=$pkgver-r$pkgrel" # backward compatibility (Alpine <3.23)
 
 	amove usr/lib/python*
 }
