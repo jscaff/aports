@@ -29,6 +29,7 @@ build() {
     cmake -G Ninja -B build \
         -DGLFW_BUILD_X11=OFF \
         -DGLFW_BUILD_WAYLAND=ON \
+        -DCMAKE_INSTALL_PREFIX=/usr \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
         -DGLFW_INSTALL=ON \
         -DBUILD_SHARED_LIBS=ON \
