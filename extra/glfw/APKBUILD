@@ -12,6 +12,7 @@ $pkgname-$pkgver.tar.gz::https://github.com/glfw/glfw/archive/refs/tags/$pkgver.
 01-egl_context.patch
 input.h
 "
+subpackages="$pkgname-dbg $pkgname-dev"
 makedepends="cmake ninja qnx-fd-notify-dev libxkbcommon-dev wayland-dev"
 depends="libxkbcommon wayland qnx-fd-notify qnx-hid"
 
