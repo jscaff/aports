@@ -13,12 +13,6 @@ makedepends="autoconf automake libtool abseil-cpp-dev protobuf-dev"
 subpackages="$pkgname-compiler $pkgname-dev"
 source="https://github.com/protobuf-c/protobuf-c/releases/download/v$pkgver/protobuf-c-$pkgver.tar.gz"
 
-# secfixes:
-#   1.4.1-r0:
-#     - CVE-2022-33070
-#   1.3.2-r0:
-#     - CVE-2021-3121
-
 build() {
 	CFLAGS="$CFLAGS -fPIC" \
 	CXXFLAGS="$CXXFLAGS -std=c++17 -fPIC" \
