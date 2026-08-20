@@ -7,6 +7,7 @@ pkgdesc="X11 keyboard file manipulation library"
 url="https://xorg.freedesktop.org/"
 arch="all"
 license="MIT"
+depends="libx11"
 makedepends="
 	libx11-dev
 	meson
