@@ -3,7 +3,7 @@
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=protobuf-c
 pkgver=1.5.2
-pkgrel=0
+pkgrel=1
 pkgdesc="Protocol Buffers implementation in C"
 url="https://github.com/protobuf-c/protobuf-c"
 arch="all"
@@ -35,6 +35,7 @@ package() {
 
 compiler() {
 	pkgdesc="Protocol Buffers C compiler"
+    depends="protoc"
 
 	amove usr/bin/protoc-c
 	amove usr/bin/protoc-gen-c
