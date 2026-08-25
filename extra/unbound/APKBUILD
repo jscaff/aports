@@ -3,7 +3,7 @@
 # Alpine-Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=unbound
-pkgver=1.24.2
+pkgver=1.26.0
 pkgrel=0
 pkgdesc="Unbound is a validating, recursive, and caching DNS resolver"
 url="https://nlnetlabs.nl/projects/unbound/about/"
@@ -19,6 +19,7 @@ makedepends="$depends_dev
 	protobuf-c-dev
     protobuf-c-compiler
 	python3-dev
+    protoc
 	swig
     autoconf
 	"
@@ -38,10 +39,7 @@ subpackages="
 	"
 source="
     https://unbound.net/downloads/unbound-$pkgver.tar.gz
-    qnx-build.patch
-    qnx-endian.patch
-    swig-4.4.patch
-    use-system-default-so-sndbuf.patch
+    00-qnx-build.patch
 "
 
 prepare() {
@@ -52,6 +50,9 @@ prepare() {
 }
 
 build() {
+    export CFLAGS="$CFLAGS"
+    export LDFLAGS="$LDFLAGS -Wl,-z,stack-size=4194304"
+
     PYTHON_VERSION=3 \
     ./configure \
         --build="$CBUILD" \
@@ -114,9 +115,6 @@ py() {
 
 
 sha512sums="
-655d63ec5305323e84d82691425d74d98c332d0028517bd729d191e5f968ce9481b49ec7447d4c4906dce7997a998a115db36e911a59d2d877da5840c2080261  unbound-1.24.2.tar.gz
-35f6acade9194f15b47e15ecd9b9acf7918e9bfb4bd56312cf7bcab98e6b4b98aa9c6114e6b3880dce890349d60a42aa3823938e3b60c6bcf72cc531d29181c3  qnx-build.patch
-529ea92eb2d743bb250034ff0cf3389d8de82b4770cb7dfe4b71ae3bb631073c142393e7833ac96f782295418022c8f334772cda39dd339706fab7a175ae7374  qnx-endian.patch
-eae1aa98a016c00eecc5ac23bd74bf25bd0ba6b33e45499fc14961c1bf0bfa1b080a8f770f41abf0a86bf55532518246e0068f34e3c2ac234c63d42486d82e70  swig-4.4.patch
-2c9fe5b952fc700ea1df720dfac5a40dd57c43772b43f7bd7fcebf9b9ec18dd191005afcd8125f12710b45f1e14c93b8970464b350de8ab51580b9bae508ca6a  use-system-default-so-sndbuf.patch
+d061a4fd89b83e9e2c122b4479547f86548856710c801df01ce0aff8f0b4df9a61760cb7418b8ba7c79d504e6af49d7affc480f0730890bc818709007a931efd  unbound-1.26.0.tar.gz
+4f33a7be8380ef6af16e62e5db36720b3c923f85ad4f51e98e1da8ecb2d02fa2343e1c30e94a04ae7f4f7d2a16cc4ecf04d7530760ac3763d75c6484755470c4  00-qnx-build.patch
 "

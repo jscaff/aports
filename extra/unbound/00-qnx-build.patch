@@ -1,5 +1,5 @@
 diff --git a/cachedb/cachedb.c b/cachedb/cachedb.c
-index bdb1754e..44f986dd 100644
+index 8d5a4a3..08c8358 100644
 --- a/cachedb/cachedb.c
 +++ b/cachedb/cachedb.c
 @@ -68,25 +68,29 @@
@@ -22,7 +22,7 @@ index bdb1754e..44f986dd 100644
 +#ifdef HAVE_NET_NETBYTE_H
 +#  include <net/netbyte.h>
 +#elif
-+#  ifndef HAVE_HTOBE64 
++#  ifndef HAVE_HTOBE64
 +#    ifdef HAVE_LIBKERN_OSBYTEORDER_H
 +       /* In practice this is specific to MacOS X.  We assume it doesn't have
 +        * htobe64/be64toh but has alternatives with a different name. */
@@ -50,12 +50,11 @@ index bdb1754e..44f986dd 100644
  
  /** the unit test testframe for cachedb, its module state contains
   * a cache for a couple queries (in memory). */
-
 diff --git a/configure.ac b/configure.ac
-index 6a43fd5d..87f0ec78 100644
+index 254a6c6..bb42f06 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -490,6 +490,9 @@ AC_CHECK_HEADERS([net/if.h],,, [
+@@ -502,6 +502,9 @@ AC_CHECK_HEADERS([net/if.h],,, [
  #endif
  ])
  
@@ -65,3 +64,31 @@ index 6a43fd5d..87f0ec78 100644
  # Check for Apple header. This uncovers TARGET_OS_IPHONE, TARGET_OS_TV or TARGET_OS_WATCH
  AC_CHECK_HEADERS([TargetConditionals.h],,, [AC_INCLUDES_DEFAULT])
  AC_CHECK_HEADERS([netioapi.h],,, [AC_INCLUDES_DEFAULT
+@@ -2064,6 +2067,10 @@ if test "$USE_NSS" = "no"; then
+ 			*freebsd*|*FreeBSD)
+ 				AC_LIBOBJ(getentropy_freebsd)
+ 			;;
++			*qnx*|QNX)
++                # For now base on freebsd, in the future we can have our own implementation
++				AC_LIBOBJ(getentropy_freebsd)
++			;;
+ 			*linux*|Linux|*)
+ 				AC_LIBOBJ(getentropy_linux)
+ 				AC_CHECK_FUNCS([SHA512_Update],,[
+@@ -2349,6 +2356,16 @@ dnl includes
+ 
+ #if STDC_HEADERS
+ #include <stdlib.h>
++#if defined(__QNX__)
++/**
++ Our stdlib.h isn't the gnu one, and it doesn't include
++ <sys/types.h which ends up importing <sys/select.h> which ends up
++ importing <sys/struct_timeval.h> (which doesn't exist on our
++ system, so we need <sys/time.h>)
++*/
++#include <sys/time.h>
++#endif
++
+ #include <stddef.h>
+ #endif
+ 
