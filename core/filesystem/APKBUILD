@@ -1,7 +1,7 @@
 # Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=filesystem
 pkgver=1
-pkgrel=4
+pkgrel=5
 pkgdesc="Base file system layout and files"
 arch="noarch"
 license="LicenseRef-QDL-Non-Commercial"
@@ -39,10 +39,13 @@ package() {
 		usr/local usr/local/bin usr/local/lib \
 		var var/cache var/lib var/log
 	install -d -m 1777 "$pkgdir"/var/tmp
-    # Compatibility symlinks
-    ln -sv usr/bin bin
-    ln -sv usr/lib lib
-    ln -sv var/run run
+    	# Compatibility symlinks
+	ln -sv usr/bin bin
+	ln -sv usr/lib lib
+
+	ln -s ../run var/run
+	ln -s ../run/lock var/lock
+
 	# Base files
 	install -vm 0644 "$srcdir"/protocols-$_nbver "$pkgdir"/etc/protocols
 	install -vm 0644 "$srcdir"/services-$_nbver "$pkgdir"/etc/services
