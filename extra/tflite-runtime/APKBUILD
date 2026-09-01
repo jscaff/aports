@@ -14,8 +14,10 @@ pkgdesc="TensorFlow Lite - High-performance ML & GenAI deployment on edge platfo
 url="https://ai.google.dev/edge/litert"
 arch="all"
 license="Apache-2.0"
+# if net is removed, please remove ca-certificates from makedepends
 options="net"
 depends="$pkgname-dev=$pkgver-r$pkgrel"
+# ca-certificates is only because cmake pulls in some sutff at buildtime and there is no easy way to get rid of that
 makedepends="
     clang
     cmake
@@ -28,6 +30,7 @@ makedepends="
     python3-setuptools
     python3-wheel
     python3-pybind11-dev
+    ca-certificates
     "
 subpackages="
     $pkgname-dev
