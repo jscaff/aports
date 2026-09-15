@@ -98,7 +98,7 @@ build() {
 
     # Reduce size of debug syms
     CFLAGS="$CFLAGS -g1 -DFARMHASH_LITTLE_ENDIAN=1 -I$_python_include_dir -I$_numpy_include_dir -I$_pybind11_include_dir" \
-    CXXFLAGS="$CXXFLAGS -g1 -DFARMHASH_LITTLE_ENDIAN=1 -I$_python_include_dir -I$_numpy_include_dir -I$_pybind11_include_dir" \
+    CXXFLAGS="$CXXFLAGS -g1 -DFARMHASH_LITTLE_ENDIAN=1 -I$_python_include_dir -I$_numpy_include_dir -I$_pybind11_include_dir -Wno-c2y-extensions" \
     CC=clang CXX=clang++ \
     cmake3.5 -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
