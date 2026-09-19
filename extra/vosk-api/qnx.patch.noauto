@@ -1,0 +1,105 @@
+diff --git a/src/Makefile b/src/Makefile
+index 4d4efbc..89a1523 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -89,6 +89,10 @@ ifeq ($(shell uname), Darwin)
+ 	$(CXX) -dynamiclib -o $(KALDILIBDIR)/libkaldi.dylib -install_name @rpath/libkaldi.dylib -framework Accelerate $(LDFLAGS) $(wildcard $(SUBDIRS_LIB:=/*.dylib))
+ else
+ ifeq ($(shell uname), Linux)
++#	$(warning the following command will probably fail, in that case add -fPIC to your CXXFLAGS and remake all)
++	$(CXX) -shared -o $(KALDILIBDIR)/$(KALDI_SONAME) -Wl,-soname=$(KALDI_SONAME),--whole-archive  $(wildcard $(SUBDIRS_LIB:=/kaldi-*.a)) -Wl,--no-whole-archive  $(LDLIBS)
++else
++ifeq ($(shell uname), QNX)
+ #	$(warning the following command will probably fail, in that case add -fPIC to your CXXFLAGS and remake all)
+ 	$(CXX) -shared -o $(KALDILIBDIR)/$(KALDI_SONAME) -Wl,-soname=$(KALDI_SONAME),--whole-archive  $(wildcard $(SUBDIRS_LIB:=/kaldi-*.a)) -Wl,--no-whole-archive  $(LDLIBS)
+ else
+@@ -96,6 +100,7 @@ else
+ endif
+ endif
+ endif
++endif
+ 
+ .PHONY: biglibext
+ biglibext: $(EXT_SUBDIRS_LIB)
+@@ -104,6 +109,10 @@ ifeq ($(shell uname), Darwin)
+ 	$(CXX) -dynamiclib -o $(KALDILIBDIR)/libkaldi_ext.dylib -install_name @rpath/libkaldi_ext.dylib -framework Accelerate $(LDFLAGS) $(EXT_SUBDIRS_LIB:=/*.dylib)
+ else
+ ifeq ($(shell uname), Linux)
++#	$(warning The following command will probably fail, in that case add -fPIC to your CXXFLAGS and remake all.)
++	$(CXX) -shared -o $(KALDILIBDIR)/libkaldi_ext.so -Wl,-soname=libkaldi_ext.so,--whole-archive  $(EXT_SUBDIRS_LIB:=/kaldi-*.a) -Wl,--no-whole-archive
++else
++ifeq ($(shell uname), QNX)
+ #	$(warning The following command will probably fail, in that case add -fPIC to your CXXFLAGS and remake all.)
+ 	$(CXX) -shared -o $(KALDILIBDIR)/libkaldi_ext.so -Wl,-soname=libkaldi_ext.so,--whole-archive  $(EXT_SUBDIRS_LIB:=/kaldi-*.a) -Wl,--no-whole-archive
+ else
+@@ -111,6 +120,7 @@ else
+ endif
+ endif
+ endif
++endif
+ 
+ # Compile optional stuff
+ .PHONY: ext check_portaudio clean distclean test ext_test
+diff --git a/src/configure b/src/configure
+index 423e8b0..ef0be90 100755
+--- a/src/configure
++++ b/src/configure
+@@ -947,7 +947,7 @@ else
+   if [ "`uname`" == "Darwin"  ]; then
+     OPENFSTLIBS="$FSTROOT/lib/libfst.dylib"
+     OPENFSTLDFLAGS="-Wl,-rpath -Wl,${FSTROOT}/lib"
+-  elif [ "`uname`" == "Linux" -o "`uname`" == "FreeBSD" ]; then
++  elif [ "`uname`" == "Linux" -o "`uname`" == "FreeBSD" -o "`uname`" == "QNX" ]; then
+     OPENFSTLIBS="$FSTROOT/lib/libfst.so"
+     OPENFSTLDFLAGS="-Wl,-rpath=${FSTROOT}/lib"
+   else
+@@ -1093,7 +1093,7 @@ elif [ "`uname -o`" == "Cygwin"  ]; then
+   cat makefiles/cygwin.mk >> kaldi.mk
+   echo "Successfully configured for Cygwin with CLAPACK."
+ 
+-elif [ "`uname`" == "Linux" -o "`uname`" == "FreeBSD"  ]; then
++elif [ "`uname`" == "Linux" -o "`uname`" == "FreeBSD" -o "`uname`" == "QNX" ]; then
+   echo "On Linux: Checking for linear algebra header files ..."
+   if [ "$MATHLIB" == "ATLAS" ]; then
+     if [ ! -f $ATLASROOT/include/cblas.h ] || [ ! -f $ATLASROOT/include/clapack.h ] ; then
+@@ -1289,10 +1289,10 @@ or try another math library, e.g. --mathlib=OPENBLAS (Kaldi may be slower)."
+     # how long ago the dependency was dropped.
+     if $static_math; then
+       echo "Configuring static OpenBlas since --static-math=yes"
+-      OPENBLASLIBS="-L$OPENBLASLIBDIR -l:libopenblas.a -lgfortran"
++      OPENBLASLIBS="-L$OPENBLASLIBDIR -l:libopenblas.a"
+     else
+       echo "Configuring dynamically loaded OpenBlas since --static-math=no (the default)"
+-      OPENBLASLIBS="-L$OPENBLASLIBDIR -lopenblas -lgfortran -Wl,-rpath=$OPENBLASLIBDIR"
++      OPENBLASLIBS="-L$OPENBLASLIBDIR -lopenblas -Wl,-rpath=$OPENBLASLIBDIR"
+     fi
+     echo "OPENBLASINC = $OPENBLASINCDIR" >> kaldi.mk
+     echo "OPENBLASLIBS = $OPENBLASLIBS" >> kaldi.mk
+diff --git a/src/makefiles/default_rules.mk b/src/makefiles/default_rules.mk
+index 3ae5ed5..7dbaeee 100644
+--- a/src/makefiles/default_rules.mk
++++ b/src/makefiles/default_rules.mk
+@@ -27,6 +27,12 @@ ifeq ($(KALDI_FLAVOR), dynamic)
+     endif
+     LDFLAGS += -Wl,-rpath=$(shell readlink -f $(KALDILIBDIR))
+     EXTRA_LDLIBS += $(foreach dep,$(ADDLIBS), $(dir $(dep))lib$(notdir $(basename $(dep))).so)
++  else ifeq ($(shell uname), QNX)
++    ifdef LIBNAME
++      LIBFILE = lib$(LIBNAME).so
++    endif
++    LDFLAGS += -Wl,-rpath=$(shell readlink -f $(KALDILIBDIR))
++    EXTRA_LDLIBS += $(foreach dep,$(ADDLIBS), $(dir $(dep))lib$(notdir $(basename $(dep))).so)
+   else  # Platform not supported
+     $(error Dynamic libraries not supported on this platform. Run configure with --static flag.)
+   endif
+@@ -61,6 +67,10 @@ $(LIBFILE): $(LIBNAME).a
+         # Building shared library from static (static was compiled with -fPIC)
+ 	$(CXX) -shared -o $@ -Wl,--as-needed  -Wl,-soname=$@,--whole-archive $(LIBNAME).a -Wl,--no-whole-archive $(LDFLAGS) $(LDLIBS)
+ 	ln -sf $(shell pwd)/$@ $(KALDILIBDIR)/$@
++  else ifeq ($(shell uname), QNX)
++        # Building shared library from static (static was compiled with -fPIC)
++	$(CXX) -shared -o $@ -Wl,--as-needed  -Wl,-soname=$@,--whole-archive $(LIBNAME).a -Wl,--no-whole-archive $(LDFLAGS) $(LDLIBS)
++	ln -sf $(shell pwd)/$@ $(KALDILIBDIR)/$@
+   else  # Platform not supported
+ 	$(error Dynamic libraries not supported on this platform. Run configure with --static flag.)
+   endif

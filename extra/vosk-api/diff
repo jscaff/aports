@@ -1,0 +1,28 @@
+diff --git a/src/makefiles/default_rules.mk b/src/makefiles/default_rules.mk
+index 3ae5ed5..7dbaeee 100644
+--- a/src/makefiles/default_rules.mk
++++ b/src/makefiles/default_rules.mk
+@@ -27,6 +27,12 @@ ifeq ($(KALDI_FLAVOR), dynamic)
+     endif
+     LDFLAGS += -Wl,-rpath=$(shell readlink -f $(KALDILIBDIR))
+     EXTRA_LDLIBS += $(foreach dep,$(ADDLIBS), $(dir $(dep))lib$(notdir $(basename $(dep))).so)
++  else ifeq ($(shell uname), QNX)
++    ifdef LIBNAME
++      LIBFILE = lib$(LIBNAME).so
++    endif
++    LDFLAGS += -Wl,-rpath=$(shell readlink -f $(KALDILIBDIR))
++    EXTRA_LDLIBS += $(foreach dep,$(ADDLIBS), $(dir $(dep))lib$(notdir $(basename $(dep))).so)
+   else  # Platform not supported
+     $(error Dynamic libraries not supported on this platform. Run configure with --static flag.)
+   endif
+@@ -61,6 +67,10 @@ $(LIBFILE): $(LIBNAME).a
+         # Building shared library from static (static was compiled with -fPIC)
+ 	$(CXX) -shared -o $@ -Wl,--as-needed  -Wl,-soname=$@,--whole-archive $(LIBNAME).a -Wl,--no-whole-archive $(LDFLAGS) $(LDLIBS)
+ 	ln -sf $(shell pwd)/$@ $(KALDILIBDIR)/$@
++  else ifeq ($(shell uname), QNX)
++        # Building shared library from static (static was compiled with -fPIC)
++	$(CXX) -shared -o $@ -Wl,--as-needed  -Wl,-soname=$@,--whole-archive $(LIBNAME).a -Wl,--no-whole-archive $(LDFLAGS) $(LDLIBS)
++	ln -sf $(shell pwd)/$@ $(KALDILIBDIR)/$@
+   else  # Platform not supported
+ 	$(error Dynamic libraries not supported on this platform. Run configure with --static flag.)
+   endif
