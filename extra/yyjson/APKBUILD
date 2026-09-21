@@ -1,6 +1,7 @@
 # Alpine-Contributor: Grigory Kirillov <txgk@bk.ru>
 # Alpine-Contributor: Celeste <cielesti@protonmail.com>
 # Alpine-Maintainer: Achill Gilgenast <achill@achill.org>
+# Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=yyjson
 pkgver=0.12.0
 pkgrel=0
