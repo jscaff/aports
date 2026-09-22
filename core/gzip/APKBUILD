@@ -9,7 +9,7 @@ vcs_url="https://cgit.git.savannah.gnu.org/cgit/gzip.git"
 arch="all"
 license="GPL-3.0-or-later"
 depends="grep less"
-checkdepends="grep perl"
+checkdepends="grep perl ncurses-terminfo"
 source="https://mirror.csclub.uwaterloo.ca/gnu/gzip/gzip-$pkgver.tar.xz"
 
 build() {
