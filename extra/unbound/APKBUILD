@@ -3,13 +3,13 @@
 # Alpine-Maintainer: Jakub Jirutka <jakub@jirutka.cz>
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=unbound
-pkgver=1.26.0
+pkgver=1.26.1
 pkgrel=0
 pkgdesc="Unbound is a validating, recursive, and caching DNS resolver"
 url="https://nlnetlabs.nl/projects/unbound/about/"
 arch="all"
 license="BSD-3-Clause"
-depends="dnssec-root"
+depends="dnssec-root hiredis libevent nghttp2 openssl"
 depends_dev="expat-dev"
 makedepends="$depends_dev
 	hiredis-dev
@@ -115,6 +115,6 @@ py() {
 
 
 sha512sums="
-d061a4fd89b83e9e2c122b4479547f86548856710c801df01ce0aff8f0b4df9a61760cb7418b8ba7c79d504e6af49d7affc480f0730890bc818709007a931efd  unbound-1.26.0.tar.gz
+b0a02fe77e5d0ad697e950ee0c13b987f0f33b489dfe4bf4ed0b09723ca883ebe4465f69625b7d4eba8171516e6879bb07bf8c22b6e8bdd357e2f4f43e485525  unbound-1.26.1.tar.gz
 4f33a7be8380ef6af16e62e5db36720b3c923f85ad4f51e98e1da8ecb2d02fa2343e1c30e94a04ae7f4f7d2a16cc4ecf04d7530760ac3763d75c6484755470c4  00-qnx-build.patch
 "
