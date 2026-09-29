@@ -1,8 +1,8 @@
 # Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=python3
-pkgver=3.14.0
+pkgver=3.14.7
 _basever=${pkgver%.*}
-pkgrel=6
+pkgrel=0
 pkgdesc="High-level scripting language"
 url="https://www.python.org/"
 arch="all"
@@ -60,8 +60,8 @@ tests() {
 }
 
 sha512sums="
-46e9e205c3a084cba68bf7f267ab2fd0862a05430165e0eb713f2d6b3a1a4452f72f563de5de55caea824be9df56f66dd568f4814941667a9bb0954229772c53  Python-3.14.0.tar.xz
-3f7a255a08b10e70f3d658b73ee4a820b2b6f6260bd37126294b55236126cc552982dead74c8c8a8eeddd283237f5e2a60e4e2c65dcb8970b80e9e826598a3d1  fix-qnx-python.patch
-a1d6c60d3e0e960d80b7b5406d53196ff05adb07122255dad728c6685ff15d579b845eb467492f5cdecdeeb0c6354f441cfcd3f5f4dc1f462a70cf1f4deb63fb  fix-locale.patch
+3d4e2e2f983b320dec47005c408d7178d3656a6de0c4430ce21514797174b972f461200898b25d3dfac2a455019ef87e45d0fb2bb6ec2ca887124d10037a2a07  Python-3.14.7.tar.xz
+b35bc220614914ac25044d24b24c403277d1b6468c7a2a77f24ecf489aedad56b43d90739fc94ef150778447befd3e92aa056e325e35e9a5a806a2664e438995  fix-qnx-python.patch
+34bbe68d8ada58e8feb58e9a246ce6a778a8ee230806c595ede914c2dc8a9a714328a158325b19b2b56e406d575b712ceb46e7acb5fdd2466933011b76acc29d  fix-locale.patch
 48c2b2c42c8cd8f1071f75149556648a6bdf756a9946a6760de0eadeee9ae53c08b5a2dc9d131a8f7b734128386fd4ae7d71cdbdb53dadbd00443bfafd33639b  EXTERNALLY-MANAGED
 "

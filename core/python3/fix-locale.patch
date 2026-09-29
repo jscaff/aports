@@ -1,6 +1,6 @@
-diff --color -U 6 -r before/Lib/locale.py Python-3.14.0/Lib/locale.py
---- before/Lib/locale.py	2026-02-26 09:04:45.218099612 -0500
-+++ Python-3.14.0/Lib/locale.py	2026-02-26 09:11:15.646320602 -0500
+diff --color -U 6 -r a/Lib/locale.py b/Lib/locale.py
+--- a/Lib/locale.py	2026-02-26 09:04:45.218099612 -0500
++++ b/Lib/locale.py	2026-02-26 09:11:15.646320602 -0500
 @@ -489,15 +489,15 @@
              # since some systems may use other encodings for these
              # locales. Also, we ignore other modifiers.

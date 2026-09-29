@@ -305,8 +305,8 @@ index da405824244..68ae03d9788 100644
  /* The POSIX spec requires that use of pthread_attr_setstacksize
 @@ -409,6 +411,9 @@ PyThread_get_thread_native_id(void)
  #elif defined(__DragonFly__)
-     lwpid_t native_id;
-     native_id = lwp_gettid();
+     // lwp_gettid() is only unique within a process, so combine it with the pid.
+     unsigned long native_id = (unsigned long)getpid() << 32 | lwp_gettid();
 +#elif defined(__QNX__)
 +    int native_id;
 +    native_id = gettid();
@@ -352,3 +352,49 @@ index d31c24dffa2..dc8235381dd 100755
  	VxWorks*)
  		LINKFORSHARED='-Wl,-export-dynamic';;
  	esac
+diff --git a/Modules/_ctypes/callproc.c.orig b/Modules/_ctypes/callproc.c
+index 27b9921..f832b01 100644
+--- a/Modules/_ctypes/callproc.c.orig
++++ b/Modules/_ctypes/callproc.c
+@@ -1670,10 +1670,19 @@ static PyObject *py_dl_sym(PyObject *self, PyObject *args)
+ 
+ // Apple platforms use the dyld API in ctypes.util instead.
+ #if defined(HAVE_DL_ITERATE_PHDR) && !defined(__APPLE__)
++#ifdef __QNX__
++#include <sys/link.h>
++#else
+ #include <link.h>
++#endif
+ 
++#ifdef __QNX__
++static int
++_dllist_callback(const struct dl_phdr_info *info, size_t size, void *data)
++#else
+ static int
+ _dllist_callback(struct dl_phdr_info *info, size_t size, void *data)
++#endif
+ {
+     PyObject *list = (PyObject *)data;
+     PyObject *name = PyUnicode_DecodeFSDefault(info->dlpi_name);
+diff --git a/./Modules/_testcapimodule.c.orig b/./Modules/_testcapimodule.c
+index 5784482..83ad71a 100644
+--- a/./Modules/_testcapimodule.c.orig
++++ b/./Modules/_testcapimodule.c
+@@ -2572,7 +2572,7 @@ toggle_reftrace_printer(PyObject *ob, PyObject *arg)
+ }
+ 
+ 
+-#ifdef HAVE_SYSCTLBYNAME
++#if defined(HAVE_SYSCTLBYNAME) && !defined(__QNX__)
+ static PyObject*
+ uptime_bsd(PyObject *Py_UNUSED(self), PyObject *Py_UNUSED(args))
+ {
+@@ -2691,7 +2691,7 @@ static PyMethodDef TestMethods[] = {
+     {"test_atexit", test_atexit, METH_NOARGS},
+     {"code_offset_to_line", _PyCFunction_CAST(code_offset_to_line), METH_FASTCALL},
+     {"toggle_reftrace_printer", toggle_reftrace_printer, METH_O},
+-#ifdef HAVE_SYSCTLBYNAME
++#if defined(HAVE_SYSCTLBYNAME) && !defined(__QNX__)
+     {"uptime_bsd", uptime_bsd, METH_NOARGS},
+ #endif
+     {NULL, NULL} /* sentinel */
