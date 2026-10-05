@@ -1,5 +1,6 @@
-# Contributor: Alexey Yerin <yyp@disroot.org>
-# Maintainer: Alexey Yerin <yyp@disroot.org>
+# Alpine-Contributor: Alexey Yerin <yyp@disroot.org>
+# Alpine-Maintainer: Alexey Yerin <yyp@disroot.org>
+# Maintainer: Aaron Bassett <abassett@qnx.com>
 pkgname=libsfdo
 pkgver=0.1.4
 pkgrel=0
