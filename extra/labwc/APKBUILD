@@ -23,10 +23,10 @@ makedepends="
 	qnx-fd-notify-dev
 	"
 subpackages="$pkgname-doc $pkgname-lang"
-source="https://github.com/qnx-ports/labwc/archive/refs/heads/qnx-$pkgver.tar.gz
+source="https://github.com/qnx-ports/labwc/archive/refs/tags/qnx-$pkgver-r$pkgrel.tar.gz
 	remove-aports-git-version.patch
 	"
-builddir="$srcdir/labwc-qnx-$pkgver"
+builddir="$srcdir/labwc-qnx-$pkgver-r$pkgrel"
 
 prepare() {
 	default_prepare
@@ -47,6 +47,6 @@ package() {
 
 
 sha512sums="
-32650e0ca8cc6381734caec6d9b8c7afb8f11dccb371cc2d7b5fbcb14c79b1c8ba267acae95f4a4cb334a97e9908660b910e4f86bb587613c21e800584a363aa  qnx-0.20.2.tar.gz
+129192749ed82027c29fbfe693c722bb75dbc4b011d48178b16e1c57518b9fdba5ddb5bb6d52ea0483eea0d98060fdae9fdbddee2ab44c05f239563de797137b  qnx-0.20.2-r0.tar.gz
 e47e63b07ac05a175c033f1e1110af9e5e45b8f7539a7e194a0f22bb4931ed5f2bcfa9a887b5fb67c22f1132f7833ba5c6ab6853d754f8cd3b87caa31f7e6992  remove-aports-git-version.patch
 "
