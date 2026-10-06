@@ -4,7 +4,7 @@
 pkgname=wlroots0.20
 pkgver=0.20.2
 _pkgver=${pkgver/_/-}
-pkgrel=1
+pkgrel=0
 pkgdesc="Modular Wayland compositor library"
 url="https://gitlab.freedesktop.org/wlroots/wlroots"
 license="MIT"
@@ -34,8 +34,8 @@ makedepends="
 # manually. Otherwise, the wlroots shared object is not installed with -dev.
 depends_dev="$pkgname=$pkgver-r$pkgrel qnx-libdrm-dev qnx-libgbm-dev  qnx-screen-dev wayland-protocols wayland-dev pixman-dev lcms2-dev libxkbcommon-dev"
 subpackages="$pkgname-dbg $pkgname-static $pkgname-dev"
-source="https://github.com/qnx-ports/wlroots/archive/refs/heads/qnx-$_pkgver.tar.gz"
-builddir="$srcdir/wlroots-qnx-$_pkgver"
+source="wlroots-$_pkgver-r$pkgrel.tar.gz::https://github.com/qnx-ports/wlroots/archive/refs/tags/qnx-$_pkgver-r$pkgrel.tar.gz"
+builddir="$srcdir/wlroots-qnx-$_pkgver-r$pkgrel"
 options="!check" # no test suite
 
 # whether this is the default version (latest stable wlroots)
@@ -71,5 +71,5 @@ package() {
 
 
 sha512sums="
-56d0f1e13358c1534d99e9843a7b19643a6349c4d43ac00fdb50963b88d988a98d89c4504751da1baaccf34f628f8e68b582a0bf0ebf4c62944ce0fabc329345  qnx-0.20.2.tar.gz
+5165e03b05b40b0663cc5388ed9df7d679360f6cfe92de072b34e54aba371f44cffc09369da0ff8eb652c460e5061a0b4eb199a890e871f7b64973d8946b97f4  wlroots-0.20.2-r0.tar.gz
 "
