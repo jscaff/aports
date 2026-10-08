@@ -1,7 +1,7 @@
 # Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=filesystem
 pkgver=1
-pkgrel=3
+pkgrel=4
 pkgdesc="Base file system layout and files"
 arch="noarch"
 license="LicenseRef-QDL-Non-Commercial"
