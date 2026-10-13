@@ -38,20 +38,6 @@ source="wlroots-$_pkgver-r$pkgrel.tar.gz::https://github.com/qnx-ports/wlroots/a
 builddir="$srcdir/wlroots-qnx-$_pkgver-r$pkgrel"
 options="!check" # no test suite
 
-# whether this is the default version (latest stable wlroots)
-_default="yes"
-
-if [ "$_default" = yes ]; then
-	provides="wlroots=$pkgver-r$pkgrel"
-	replaces="wlroots"
-
-	dev() {
-		default_dev
-		provides="wlroots-dev=$pkgver-r$pkgrel"
-		replaces="wlroots-dev"
-	}
-fi
-
 build() {
 	#-Db_lto=true \
 	abuild-meson \
