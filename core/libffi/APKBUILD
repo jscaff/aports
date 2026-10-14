@@ -20,8 +20,6 @@ prepare() {
 
 build() {
     ./configure \
-        --build="$CBUILD" \
-        --host="$CHOST" \
         --prefix=/usr \
         --docdir=/usr/share/doc/libffi \
         --disable-rpath
