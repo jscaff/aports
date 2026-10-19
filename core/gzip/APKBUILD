@@ -14,7 +14,7 @@ source="https://mirror.csclub.uwaterloo.ca/gnu/gzip/gzip-$pkgver.tar.xz"
 
 build() {
     # avoid text relocation
-    export DEFS="NO_ASM "
+    export DEFS="NO_ASM"
     export CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=0"
     ./configure \
         --build=$CBUILD \
