@@ -1,9 +1,8 @@
 # Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=ca-certificates
-pkgver=1
+pkgver=3.131.1
 _curl_ver=8.23.0
-_nss_ver=3.131.1
-pkgrel=5
+pkgrel=0
 pkgdesc="CA certificates provider"
 url="https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/"
 arch="noarch"
@@ -14,7 +13,7 @@ options="!check"
 triggers="ca-certificates.trigger=/usr/share/ca-certificates"
 install="$pkgname.post-deinstall"
 source="https://raw.githubusercontent.com/curl/curl/refs/tags/curl-${_curl_ver//./_}/scripts/mk-ca-bundle.pl
-    https://raw.githubusercontent.com/mozilla/nss/refs/tags/NSS_${_nss_ver//./_}_RTM/lib/ckfw/builtins/certdata.txt
+    https://raw.githubusercontent.com/mozilla/nss/refs/tags/NSS_${pkgver//./_}_RTM/lib/ckfw/builtins/certdata.txt
     update-ca-trust
     update-ca-trust.8.txt
 "
