@@ -39,14 +39,13 @@ source="https://www.thekelleys.org.uk/dnsmasq/dnsmasq-$pkgver.tar.xz
 	"
 
 build() {
-	export LIBS="$LIBS -lsocket"
-	make LIBS="$LIBS" COPTS="-DHAVE_DNSSEC" all
+	make LIBS="$LIBS -lsocket" COPTS="-DHAVE_DNSSEC" all
 	mv src/dnsmasq src/dnsmasq~dnssec
 
-	make LIBS="$LIBS" COPTS="-DHAVE_DNSSEC -DHAVE_DBUS" all
+	make LIBS="$LIBS -lsocket" COPTS="-DHAVE_DNSSEC -DHAVE_DBUS" all
 	mv src/dnsmasq src/dnsmasq~dbus
 
-	make LIBS="$LIBS" clean all
+	make LIBS="$LIBS -lsocket" clean all
 }
 
 
@@ -59,7 +58,7 @@ check() {
 package() {
 	provider_priority=100  # highest (other providers are dnsmasq-dnssec, dnsmasq-dnssec-dbus)
 
-	make PREFIX=/usr DESTDIR="$pkgdir" install
+	make PREFIX="/usr" BINDIR="/usr/bin" DESTDIR="$pkgdir" install
 
 	install -D -m755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
 	install -D -m644 "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
@@ -70,7 +69,7 @@ dnssec() {
 	provides="$pkgname=$pkgver-r$pkgrel"
 	provider_priority=20  # middle (other providers are dnsmasq, dnsmasq-dnssec-dbus)
 
-	install -D -m 755 "$builddir"/src/dnsmasq~dnssec "$subpkgdir"/usr/sbin/dnsmasq
+	install -D -m 755 "$builddir"/src/dnsmasq~dnssec "$subpkgdir"/usr/bin/dnsmasq
 }
 
 dbus() {
@@ -83,7 +82,7 @@ dbus() {
 	provider_priority=10  # lowest (other providers are dnsmasq, dnsmasq-dnssec)
 
 	cd "$builddir"
-	install -D -m755 src/dnsmasq~dbus "$subpkgdir"/usr/sbin/dnsmasq
+	install -D -m755 src/dnsmasq~dbus "$subpkgdir"/usr/bin/dnsmasq
 	install -D -m644 dbus/dnsmasq.conf -t "$subpkgdir"/usr/share/dbus-1/system.d/
 }
 
