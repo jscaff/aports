@@ -8,7 +8,7 @@ pkgdesc="A lightweight DNS, DHCP, RA, TFTP and PXE server"
 url="https://www.thekelleys.org.uk/dnsmasq/"
 arch="all"
 license="GPL-2.0-or-later"
-depends="$pkgname-common=$pkgver-r$pkgrel"
+depends="$pkgname-common=$pkgver-r$pkgrel qnx-io-sock"
 makedepends="
     qnx-io-sock-dev
 	dbus-dev
@@ -68,6 +68,7 @@ dnssec() {
 	pkgdesc="$pkgdesc with DNSSEC support"
 	provides="$pkgname=$pkgver-r$pkgrel"
 	provider_priority=20  # middle (other providers are dnsmasq, dnsmasq-dnssec-dbus)
+    depends="$depends gmp nettle"
 
 	install -D -m 755 "$builddir"/src/dnsmasq~dnssec "$subpkgdir"/usr/bin/dnsmasq
 }
@@ -80,6 +81,7 @@ dbus() {
 		$pkgname-dnssec=$pkgver-r$pkgrel
 		"
 	provider_priority=10  # lowest (other providers are dnsmasq, dnsmasq-dnssec)
+    depends="$depends dbus gmp nettle"
 
 	cd "$builddir"
 	install -D -m755 src/dnsmasq~dbus "$subpkgdir"/usr/bin/dnsmasq
