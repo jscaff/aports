@@ -3,7 +3,7 @@
 # Alpine-Maintainer: Achill Gilgenast <achill@achill.org>
 # Maintainer: jscaffidi <jscaffidi@qnx.com>
 pkgname=python3-certifi
-pkgver=2026.2.25
+pkgver=2026.10.23
 pkgrel=0
 pkgdesc="Python3 package for providing Mozilla's CA Bundle"
 url="https://pypi.org/project/certifi"
@@ -34,6 +34,6 @@ package() {
 
 
 sha512sums="
-beb2a95cc9066b828b33ec9003c8f9fa8b5dec67de262ad13908a1f26ada64eb64b572c775a648d091ac95a52380d4be3a2faccecc03d761e1ee77fc08936f3c  certifi-2026.2.25.tar.gz
+0ea25800d79530c297a9bcea5febfb4e790baacaf19283aa66e5272ce947ab464670328eb3cbb8c49dfecbc31074534d7136bc79bb55e2e857819c032d9bf9d7  certifi-2026.10.23.tar.gz
 5a0a6a9309294abc14a188b16fbfe0086c05f6e6fd8d8cb8e713faeb44c8341e0c7a8193ed63a32f33ab6231072b1ac892858817333a5c32eefff33b6c6b6495  use-alpine-system-certs.patch
 "
