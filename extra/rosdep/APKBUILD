@@ -1,0 +1,50 @@
+# Contributor: Russ Webber <russ@rw.id.au>
+# Maintainer: Russ Webber <russ@rw.id.au>
+pkgname=rosdep
+pkgver=0.26.0
+pkgrel=0
+pkgdesc="ROS multi-package manager system dependency tool"
+url="http://ros.org/wiki/rosdep"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 python3-yaml python3-catkin-pkg python3-rosdistro python3-rospkg"
+makedepends="python3-setuptools python3-gpep517"
+checkdepends="python3-pytest python3-flake8 python3-pip bash ruby-rdoc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ros-infrastructure/rosdep/archive/$pkgver.tar.gz
+    qnx.py
+    qnx.patch
+"
+options="net !check"
+
+prepare() {
+    default_prepare
+    cp "$srcdir/qnx.py" "$builddir/src/rosdep2/platforms"
+
+}
+
+build() {
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+}
+
+check() {
+	python3 -m venv --clear --without-pip --system-site-packages .testenv
+	.testenv/bin/python3 -m installer .dist/*.whl
+	PATH="$PWD/.testenv/bin:$PATH" .testenv/bin/python3 -m pytest \
+		--deselect test/test_rosdep_main.py::TestRosdepMain::test_check \
+		--deselect test/test_rosdep_main.py::TestRosdepMain::test_install
+}
+
+package() {
+	gpep517 install-wheel --destdir "$pkgdir" \
+		.dist/*.whl
+}
+
+
+
+sha512sums="
+77523e228ee4fdb25dbd4b0c77168c4ed5bbc7c4b4837f936d03029601ad511a9f9cfa7d2b1e30ef3a83c91f154e8e38392af9c5e827f170b5a299d2cf4cd9ed  rosdep-0.26.0.tar.gz
+d73cd4e2ab17026f7b9d884aad8921854c824873d72823c8dff4cd8de87466fa1bd908c6d4ce67433f32538afbd262603f6f8a76c5d3daecad799bdb40224f64  qnx.py
+9c11c2e5cbed6ae3ed95afc9f972b84a60714de941186cae940187fd2388f5dca4fb69f5afd3894c8bf71eb4ffb4550098df8c2f6bcbf65ee925d8523131648f  qnx.patch
+"

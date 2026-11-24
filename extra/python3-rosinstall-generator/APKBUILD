@@ -1,0 +1,33 @@
+# Contributor:
+# Maintainer:
+pkgname=python3-rosinstall-generator
+pkgver=0.1.23
+pkgrel=0
+pkgdesc="Rosinstall generator"
+url="https://github.com/ros-infrastructure/rosinstall_generator"
+arch="all"
+license="BSD-3-Clause"
+makedepends="python3-gpep517 python3-setuptools python3-wheel"
+subpackages=""
+source="$pkgname-$pkgver.tar.gz::https://github.com/ros-infrastructure/rosinstall_generator/archive/refs/tags/0.1.23.tar.gz"
+
+build() {
+	gpep517 build-wheel \
+		--wheel-dir .dist \
+		--output-fd 3 3>&1 >&2
+}
+
+check() {
+	python3 -m venv --clear --without-pip --system-site-packages .testenv
+	.testenv/bin/python3 -m installer .dist/*.whl
+	.testenv/bin/python3 -m pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		.dist/*.whl
+}
+
+sha512sums="
+0b01d9e239683b358e8cefd195d654665f7f80151c92ec6744da8af16d98f5f9778b6e4e2ae2576bce31256f6124bcece9b10fc0788137fd74ffe4c7d8d4c77d  python3-rosinstall-generator-0.1.23.tar.gz
+"

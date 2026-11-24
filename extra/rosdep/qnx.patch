@@ -1,0 +1,19 @@
+--- a/src/rosdep2/__init__.py	2025-06-26 19:00:50.000000000 +0000
++++ b/src/rosdep2/__init__.py	2026-11-14 03:32:19.000000000 +0000
+@@ -63,6 +63,7 @@
+     from .platforms import opensuse
+     from .platforms import osx
+     from .platforms import pip
++    from .platforms import qnx
+     from .platforms import npm
+     from .platforms import gem
+     from .platforms import redhat
+@@ -70,7 +71,7 @@
+     from .platforms import slackware
+     from .platforms import source
+ 
+-    platform_mods = [alpine, arch, cygwin, debian, gentoo, nix, openembedded, opensuse, osx, redhat, slackware, freebsd]
++    platform_mods = [alpine, arch, cygwin, debian, gentoo, nix, openembedded, opensuse, osx, qnx, redhat, slackware, freebsd]
+     installer_mods = [source, pip, gem, npm] + platform_mods
+ 
+     context = InstallerContext()
