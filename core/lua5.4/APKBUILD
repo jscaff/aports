@@ -1,31 +1,62 @@
+# Alpine-Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Leo Shen <yishen@qnx.com>
 pkgname=lua5.4
 _pkgname=lua
-pkgver=5.4.7
+pkgver=5.4.9
 _luaver=${pkgname#lua}
-pkgrel=2
-pkgdesc="Powerful lightweight programming language designed for extending applications"
+pkgrel=0
+pkgdesc="Powerful light-weight programming language"
 url="https://www.lua.org/"
 arch="all"
 license="MIT"
-depends="readline $pkgname-libs"
-makedepends="readline-dev"
+ldpath="/usr/lib/$pkgname"
+depends="$pkgname-libs"
 depends_dev="$pkgname"
-subpackages="$pkgname-dev $pkgname-doc $pkgname-libs"
+makedepends_build="libtool autoconf automake"
+makedepends_host="readline-dev"
+provides="lua"
+provider_priority=400
+subpackages="$pkgname-dbg $pkgname-dev $pkgname-doc $pkgname-libs"
 source="https://www.lua.org/ftp/$_pkgname-$pkgver.tar.gz
-	lua.pc
-	qnx-liblua-so.patch
-	qnx-paths.patch
-"
+	lua-5.4-make.patch
+	lua-5.4-module_paths.patch
+	lua5.4.pc
+	extern-c-for-cpp.patch
+	"
 builddir="$srcdir/$_pkgname-$pkgver"
 
-build() {
-	# Prepare lua.pc
-	if ! [[ -e $srcdir/lua.pc ]]; then
-		die "Need lua.pc"
-	fi
-	sed "s/%VER%/$_luaver/g;s/%REL%/$pkgver/g" $srcdir/lua.pc > $srcdir/lua.pc.patched
+prepare() {
+	default_prepare
 
-	make MYCFLAGS="$CFLAGS -fPIC" MYLDFLAGS="$LDFLAGS"
+	# Fill in data from pkgconfig file
+	sed -e "s|@MAJOR_VER@|$_luaver|g" \
+		-e "s|@MINOR_VER@|$pkgver|g" \
+		-i "$srcdir"/lua5.4.pc
+
+	# we use libtool
+	cat > configure.ac <<-EOF
+		top_buildir=.
+
+		AC_INIT(src/luaconf.h)
+		AC_PROG_LIBTOOL
+		AC_OUTPUT()
+	EOF
+	libtoolize --force --install && aclocal && autoconf
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr
+
+	cd src
+	make V=${pkgver%.*} CC="$CC" \
+		CFLAGS="$CFLAGS -DLUA_USE_POSIX -DLUA_USE_DLOPEN -DLUA_COMPAT_5_3 -DLUA_USE_READLINE" \
+		SYSLDFLAGS="$LDFLAGS" \
+		RPATH="/usr/lib" \
+		LIB_LIBS="-lm -lreadline" \
+		qnx_all
 }
 
 check() {
@@ -33,26 +64,58 @@ check() {
 }
 
 package() {
-	make \
-	    TO_LIB="liblua.so liblua.so.$_luaver liblua.so.$pkgver" \
-            INSTALL="install" \
-	    INSTALL_TOP="$pkgdir"/usr \
-            INSTALL_MAN="$pkgdir"/usr/share/man/man1 \
-	    install
-	ln -s lua $pkgdir/usr/bin/lua5.4
+	local i
+	make V=${pkgver%.*} \
+		INSTALL_TOP="$pkgdir"/usr \
+		INSTALL_INC="$pkgdir"/usr/include/$pkgname \
+		INSTALL_LIB="$pkgdir"/usr/lib/$pkgname \
+		qnx_install
 
-	install -Dm644 $srcdir/lua.pc.patched "$pkgdir"/usr/lib/pkgconfig/lua54.pc
-	ln -sf lua54.pc "$pkgdir"/usr/lib/pkgconfig/lua.pc
-	ln -sf lua54.pc "$pkgdir"/usr/lib/pkgconfig/lua5.4.pc
-	ln -sf lua54.pc "$pkgdir"/usr/lib/pkgconfig/lua-5.4.pc
+	for i in "$pkgdir"/usr/bin/* ; do
+		mv "$i" "$i"$_luaver
+	done
 
-	install -d "$pkgdir"/usr/share/doc/$pkgname
-	install -m644 doc/*.{gif,png,css,html} "$pkgdir"/usr/share/doc/$pkgname
+	for i in "$pkgdir/usr/lib/$pkgname"/*.so.*; do
+		ln -s $pkgname/${i##*/} "$pkgdir"/usr/lib/${i##*/}
+	done
+
+	install -D -m 644 doc/lua.1 "$pkgdir"/usr/share/man/man1/lua$_luaver.1
+	install -D -m 644 doc/luac.1 "$pkgdir"/usr/share/man/man1/luac$_luaver.1
+
+	mkdir -p "$pkgdir"/usr/share/doc/$pkgname/
+	install -m644 doc/*.html doc/*.css doc/*.png \
+		"$pkgdir"/usr/share/doc/$pkgname/
+
+	install -Dm644 "$srcdir"/lua5.4.pc -t "$pkgdir"/usr/lib/pkgconfig
+	# compat name for "c++" lua (same thing with extern C
+	ln -sv lua5.4.pc "$pkgdir"/usr/lib/pkgconfig/lua5.4-c++.pc
+	# compat names since we are unique
+	# other distros name it lua-5.4 or lua54. pick the former as a compat name..
+	ln -sv lua5.4.pc "$pkgdir"/usr/lib/pkgconfig/lua-5.4-c++.pc
+	ln -sv lua5.4.pc "$pkgdir"/usr/lib/pkgconfig/lua-5.4.pc
+}
+
+dev() {
+	default_dev
+
+	mkdir -p "$subpkgdir"/usr/$pkgname "$subpkgdir"/usr/lib/$pkgname
+	ln -s ../include/$pkgname "$subpkgdir"/usr/$pkgname/include
+	ln -s ../lib/$pkgname "$subpkgdir"/usr/$pkgname/lib
+	mv "$pkgdir"/usr/lib/$pkgname/liblua.so "$subpkgdir"/usr/lib/$pkgname/
+}
+
+libs() {
+	pkgdesc="Lua dynamic library runtime"
+	replaces="lua"
+
+	mkdir -p "$subpkgdir"/usr
+	mv "$pkgdir"/usr/lib "$subpkgdir"/usr/
 }
 
 sha512sums="
-98c5c8978dfdf867e37e9eb3b3ec83dee92d199243b5119505da83895e33f10d43c841be6a7d3b106daba8a0b2bd25fe099ebff8f87831dcc55c79c78b97d8b8  lua-5.4.7.tar.gz
-8a817f95149ff2995d57dcac321724a793d7a31d351574a75617f04ef4b31e2e750d05ce38223e87d28b784dfecf84244b6d1a2dc6316f6d5cf3ecbee414595d  lua.pc
-db3e6c28cd49868f75a58f0da57b3800d2d32dccd69afb2adfb7c42e1be824aaa6c61834041aeb6cf143fa5187dcb64ce78f3f48ca401329226a1b673e2efa16  qnx-liblua-so.patch
-aabe945e0128483658b23587c5397609027b2e8ffc0e0fbe14c628a752860b3c40f1771cbfbe5c9d3e003d5651b527813d1f60b544e7126c58f7601f7643eb5b  qnx-paths.patch
+b112bd3f0d47043568ef52928853ef692554378a5e368d420b589babf606a82ce05fca781f5401c3565171800b39322141ee500e53e813d1a4ccc5d3a05879b1  lua-5.4.9.tar.gz
+4412d3aabefd4a93da8eb7411549dbfd915d8503f011eff5016b7065ca3e4c1e12e5deb836a9482fba3eeb0c2b775cc3bdbb783f086fe3487f5d594e2bbd99a6  lua-5.4-make.patch
+22390e19c0f52876cc21761f63a6557e0a6ac41f25eb05bd274ec018eae36f15df385a1ec62439c34f78c67962e12da3aabe945e4e632cfc28ce21261146731e  lua-5.4-module_paths.patch
+34466bc244737a557ff2c87efbc62ab5c5424523f574d17b2f34aea40f534f2c45cdfa242097aadecd38f00d732b0c8e9daef1cd461728a084c72946edb9a48a  lua5.4.pc
+6754fed447b401509c8f4280f04513f213f5f47b9be93fde40741a10de1f009ee97c183c4c7df3e398852eaa7247938e5a6b57dd9d589987c9ef60f44784c7d6  extern-c-for-cpp.patch
 "
